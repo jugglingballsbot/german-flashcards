@@ -117,6 +117,13 @@
     letter-spacing: 1px;
   }
 
+  .card-translation {
+    font-size: 1rem;
+    opacity: 0.5;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
   .card-article {
     font-size: 1.4rem;
     opacity: 0.5;
@@ -233,7 +240,8 @@
   <div class="card" id="card">
     <div class="card-face card-front">
       <div class="card-word" id="frontWord"></div>
-      <div class="card-hint">tap to reveal</div>
+      <div class="card-translation" id="frontTranslation"></div>
+      <div class="card-hint">tap to reveal article</div>
     </div>
     <div class="card-face card-back">
       <div class="card-article-label">the article is</div>
@@ -303,6 +311,7 @@ function loadCard() {
   document.getElementById('backArticle').textContent = c.article;
   document.getElementById('backFull').textContent = c.article + ' ' + c.word;
   document.getElementById('backBadge').innerHTML = `<span class="article-badge ${c.article}">${c.article} · ${c.en}</span>`;
+  document.getElementById('frontTranslation').textContent = c.en;
 
   // Reset card
   document.getElementById('card').classList.remove('flipped');
