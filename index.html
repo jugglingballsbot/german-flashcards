@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>German Articles Flashcards</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--tg-theme-bg-color, #1a1a2e);
+    color: var(--tg-theme-text-color, #eee);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--tg-theme-text-color, #eee);
+    opacity: 0.7;
+  }
+
+  .progress-bar {
+    width: 100%;
+    max-width: 360px;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #5b9cf6;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .score-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 28px;
+    font-size: 0.9rem;
+  }
+
+  .score-item { opacity: 0.6; }
+  .score-item span { font-weight: 700; opacity: 1; color: inherit; }
+  .score-correct span { color: #4ade80; }
+  .score-wrong span { color: #f87171; }
+
+  /* Card */
+  .card-scene {
+    width: 100%;
+    max-width: 360px;
+    height: 220px;
+    perspective: 800px;
+    margin-bottom: 32px;
+    cursor: pointer;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease;
+    border-radius: 20px;
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    padding: 24px;
+  }
+
+  .card-front {
+    background: linear-gradient(135deg, #1e3a5f, #16213e);
+    border: 1px solid rgba(91,156,246,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .card-back {
+    background: linear-gradient(135deg, #1a3a2a, #0f2518);
+    border: 1px solid rgba(74,222,128,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: rotateY(180deg);
+  }
+
+  .card-word {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .card-hint {
+    font-size: 0.8rem;
+    opacity: 0.4;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .card-article {
+    font-size: 1.4rem;
+    opacity: 0.5;
+    font-weight: 300;
+    margin-bottom: 4px;
+  }
+
+  .card-full {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .card-article-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.45;
+    margin-bottom: 12px;
+  }
+
+  .article-badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .der { background: rgba(59,130,246,0.25); color: #93c5fd; border: 1px solid rgba(59,130,246,0.4); }
+  .die { background: rgba(236,72,153,0.25); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.4); }
+  .das { background: rgba(16,185,129,0.25); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.4); }
+
+  .tap-hint {
+    font-size: 0.75rem;
+    opacity: 0.3;
+    margin-top: 12px;
+  }
+
+  /* Answer buttons */
+  .answers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 20px;
+  }
+
+  .btn-article {
+    padding: 16px 8px;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+
+  .btn-article:active { transform: scale(0.95); }
+
+  .btn-der { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1.5px solid rgba(59,130,246,0.4); }
+  .btn-die { background: rgba(236,72,153,0.2); color: #f9a8d4; border: 1.5px solid rgba(236,72,153,0.4); }
+  .btn-das { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1.5px solid rgba(16,185,129,0.4); }
+
+  .btn-article.correct { background: rgba(74,222,128,0.3) !important; border-color: #4ade80 !important; color: #4ade80 !important; }
+  .btn-article.wrong   { background: rgba(248,113,113,0.3) !important; border-color: #f87171 !important; color: #f87171 !important; opacity: 0.7; }
+  .btn-article:disabled { cursor: default; }
+
+  /* Done screen */
+  .done-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .done-emoji { font-size: 3rem; }
+  .done-title { font-size: 1.5rem; font-weight: 700; }
+  .done-sub { font-size: 0.95rem; opacity: 0.6; }
+  .done-score { font-size: 2.5rem; font-weight: 800; color: #5b9cf6; }
+
+  .btn-restart {
+    margin-top: 12px;
+    padding: 14px 36px;
+    background: #5b9cf6;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-restart:active { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<h1>🇩🇪 German Articles</h1>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="score-row">
+  <div class="score-item score-correct">✅ <span id="scoreCorrect">0</span></div>
+  <div class="score-item score-wrong">❌ <span id="scoreWrong">0</span></div>
+  <div class="score-item">Card <span id="cardNum">1</span>/<span id="cardTotal">?</span></div>
+</div>
+
+<div class="card-scene" id="cardScene" onclick="flipCard()">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <div class="card-word" id="frontWord"></div>
+      <div class="card-hint">tap to reveal</div>
+    </div>
+    <div class="card-face card-back">
+      <div class="card-article-label">the article is</div>
+      <div class="card-article" id="backArticle"></div>
+      <div class="card-full" id="backFull"></div>
+      <div id="backBadge"></div>
+    </div>
+  </div>
+</div>
+
+<div class="answers" id="answers">
+  <button class="btn-article btn-der" onclick="answer('der')">der</button>
+  <button class="btn-article btn-die" onclick="answer('die')">die</button>
+  <button class="btn-article btn-das" onclick="answer('das')">das</button>
+</div>
+
+<div class="done-screen" id="doneScreen">
+  <div class="done-emoji" id="doneEmoji"></div>
+  <div class="done-title">Round complete!</div>
+  <div class="done-score" id="doneScore"></div>
+  <div class="done-sub" id="doneSub"></div>
+  <button class="btn-restart" onclick="restart()">Play again 🔁</button>
+</div>
+
+<script>
+const CARDS = [
+  { word: "Hund",     article: "der", en: "dog" },
+  { word: "Katze",    article: "die", en: "cat" },
+  { word: "Haus",     article: "das", en: "house" },
+  { word: "Auto",     article: "das", en: "car" },
+  { word: "Frau",     article: "die", en: "woman" },
+  { word: "Mann",     article: "der", en: "man" },
+  { word: "Kind",     article: "das", en: "child" },
+  { word: "Buch",     article: "das", en: "book" },
+  { word: "Tisch",    article: "der", en: "table" },
+  { word: "Schule",   article: "die", en: "school" },
+  { word: "Wasser",   article: "das", en: "water" },
+  { word: "Stadt",    article: "die", en: "city" },
+  { word: "Baum",     article: "der", en: "tree" },
+  { word: "Blume",    article: "die", en: "flower" },
+  { word: "Fenster",  article: "das", en: "window" },
+];
+
+let deck = [], idx = 0, correct = 0, wrong = 0, answered = false;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function init() {
+  deck = shuffle(CARDS);
+  idx = 0; correct = 0; wrong = 0; answered = false;
+  document.getElementById('cardTotal').textContent = deck.length;
+  document.getElementById('doneScreen').style.display = 'none';
+  document.getElementById('cardScene').style.display = '';
+  document.getElementById('answers').style.display = 'grid';
+  document.getElementById('scoreCorrect').textContent = '0';
+  document.getElementById('scoreWrong').textContent = '0';
+  loadCard();
+}
+
+function loadCard() {
+  answered = false;
+  const c = deck[idx];
+  document.getElementById('cardNum').textContent = idx + 1;
+  document.getElementById('frontWord').textContent = c.word;
+  document.getElementById('backArticle').textContent = c.article;
+  document.getElementById('backFull').textContent = c.article + ' ' + c.word;
+  document.getElementById('backBadge').innerHTML = `<span class="article-badge ${c.article}">${c.article} · ${c.en}</span>`;
+
+  // Reset card
+  document.getElementById('card').classList.remove('flipped');
+  // Reset buttons
+  document.querySelectorAll('.btn-article').forEach(b => {
+    b.className = 'btn-article btn-' + b.textContent.trim();
+    b.disabled = false;
+  });
+  // Progress
+  document.getElementById('progressFill').style.width = (idx / deck.length * 100) + '%';
+}
+
+function flipCard() {
+  if (!answered) document.getElementById('card').classList.toggle('flipped');
+}
+
+function answer(chosen) {
+  if (answered) return;
+  answered = true;
+  const c = deck[idx];
+  const isCorrect = chosen === c.article;
+
+  if (isCorrect) correct++; else wrong++;
+  document.getElementById('scoreCorrect').textContent = correct;
+  document.getElementById('scoreWrong').textContent = wrong;
+
+  // Visual feedback
+  document.querySelectorAll('.btn-article').forEach(b => {
+    const art = b.textContent.trim();
+    b.disabled = true;
+    if (art === c.article) b.classList.add('correct');
+    else if (art === chosen) b.classList.add('wrong');
+  });
+
+  // Flip to reveal
+  document.getElementById('card').classList.add('flipped');
+
+  // Next card after delay
+  setTimeout(() => {
+    idx++;
+    if (idx >= deck.length) showDone();
+    else loadCard();
+  }, 1400);
+}
+
+function showDone() {
+  document.getElementById('cardScene').style.display = 'none';
+  document.getElementById('answers').style.display = 'none';
+  document.getElementById('progressFill').style.width = '100%';
+
+  const pct = Math.round(correct / deck.length * 100);
+  document.getElementById('doneEmoji').textContent = pct >= 80 ? '🏆' : pct >= 50 ? '💪' : '📚';
+  document.getElementById('doneScore').textContent = correct + '/' + deck.length;
+  document.getElementById('doneSub').textContent = pct + '% correct · keep it up!';
+  document.getElementById('doneScreen').style.display = 'flex';
+
+  // Report to bot if in Telegram
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify({
+      type: 'german_flashcards',
+      correct, wrong, total: deck.length, pct
+    }));
+  }
+}
+
+function restart() { init(); }
+
+// Telegram WebApp init
+if (window.Telegram?.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
+init();
+</script>
+</body>
+</html>
