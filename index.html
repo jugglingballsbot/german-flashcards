@@ -267,6 +267,27 @@
 </div>
 
 <script>
+const API_BASE = 'https://46.225.99.97.nip.io/api';
+
+// Generate a session ID for this play-through
+const SESSION_ID = Math.random().toString(36).slice(2) + Date.now();
+let sessionStart = Date.now();
+
+// Get Telegram user ID if available
+const TG_USER_ID = window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anonymous';
+
+async function apiPost(path, data) {
+  try {
+    await fetch(API_BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch (e) {
+    // Silent — don't break the game if API is unreachable
+  }
+}
+
 const CARDS = [
   { word: "Hund",     article: "der", en: "dog" },
   { word: "Katze",    article: "die", en: "cat" },
@@ -338,6 +359,16 @@ function answer(chosen) {
   document.getElementById('scoreCorrect').textContent = correct;
   document.getElementById('scoreWrong').textContent = wrong;
 
+  // Log per-card result to API
+  apiPost('/card-result', {
+    userId: TG_USER_ID,
+    word: c.word,
+    article: c.article,
+    chosen,
+    correct: isCorrect,
+    sessionId: SESSION_ID
+  });
+
   // Visual feedback
   document.querySelectorAll('.btn-article').forEach(b => {
     const art = b.textContent.trim();
@@ -368,6 +399,16 @@ function showDone() {
   document.getElementById('doneSub').textContent = pct + '% correct · keep it up!';
   document.getElementById('doneScreen').style.display = 'flex';
 
+  // Log session summary to API
+  apiPost('/session', {
+    userId: TG_USER_ID,
+    sessionId: SESSION_ID,
+    correct,
+    wrong,
+    total: deck.length,
+    durationMs: Date.now() - sessionStart
+  });
+
   // Report to bot if in Telegram
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.sendData(JSON.stringify({
@@ -377,7 +418,10 @@ function showDone() {
   }
 }
 
-function restart() { init(); }
+function restart() {
+  sessionStart = Date.now();
+  init();
+}
 
 // Telegram WebApp init
 if (window.Telegram?.WebApp) {
