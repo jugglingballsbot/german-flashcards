@@ -435,7 +435,7 @@
       </div>
     </div>
     <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goalFill"></div></div>
-    <div class="goal-label" id="goalLabel">0 / 20 cards today</div>
+    <div class="goal-label" id="goalLabel">0 / 20 correct today</div>
   </div>
 
   <!-- Continue button (shown when there's a resumable deck) -->
@@ -690,7 +690,7 @@ function updateGoalUI() {
   fill.className      = 'goal-bar-fill' + (reached ? ' reached' : '');
   const lbl = document.getElementById('goalLabel');
   if (reached) { lbl.textContent = '🎯 Goal reached for today!'; lbl.className = 'goal-label reached'; }
-  else         { lbl.textContent = `${dailyAnsweredToday} / ${dailyGoal} cards today`; lbl.className = 'goal-label'; }
+  else         { lbl.textContent = `${dailyAnsweredToday} / ${dailyGoal} correct today`; lbl.className = 'goal-label'; }
 }
 
 function updateGameGoalBadge() {
@@ -962,7 +962,7 @@ function answer(chosen) {
   }
 
   // Daily progress
-  dailyAnsweredToday++;
+  if (ok) dailyAnsweredToday++;
   updateGameGoalBadge();
 
   // Goal reached toast (first time crossing goal today)
@@ -1025,7 +1025,7 @@ async function showDone() {
   const pct   = Math.round(correct / total * 100);
   const goalTxt = dailyAnsweredToday >= dailyGoal
     ? '🎯 Daily goal reached!'
-    : `${dailyAnsweredToday}/${dailyGoal} cards today`;
+    : `${dailyAnsweredToday}/${dailyGoal} correct today`;
 
   document.getElementById('doneEmoji').textContent = pct >= 80 ? '🏆' : pct >= 50 ? '💪' : '📚';
   document.getElementById('doneScore').textContent = correct + '/' + total;
