@@ -3,6 +3,7 @@ const cors = require('cors');
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const { startTelegramBot } = require('./bot');
 
 const app = express();
 const PORT = 3456;
@@ -268,4 +269,10 @@ app.post('/api/daily/:userId', (req, res) => {
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`German flashcards API running on port ${PORT}`);
   console.log(`DB: ${DB_PATH}`);
+});
+
+startTelegramBot({
+  token: process.env.TELEGRAM_BOT_TOKEN,
+  miniAppUrl: process.env.MINI_APP_URL,
+  pin: process.env.PIN_LEADERBOARD_MESSAGE,
 });
