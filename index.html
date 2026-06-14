@@ -563,6 +563,16 @@
     <div class="score-item">Card <span id="cardNum">1</span>/<span id="cardTotal">?</span></div>
   </div>
 
+    <!-- Grammar fill-in-the-blank (visible in grammar mode) -->
+  <div id="grammarCard" style="display:none; width:100%; margin-top:8px">
+    <div style="text-align:center; margin-bottom:4px">
+      <span class="topic-badge" id="grammarTopic"></span>
+    </div>
+    <div class="grammar-sentence" id="grammarSentence"></div>
+    <div class="grammar-translation" id="grammarTranslation"></div>
+    <div class="btn-grammar-opts" id="grammarOpts"></div>
+  </div>
+
   <div class="card-scene" id="cardScene">
     <div class="card" id="card">
       <div class="card-face card-front">
@@ -571,17 +581,6 @@
         <div class="card-word"    id="frontWord"></div>
         <div class="card-translation" id="frontTranslation"></div>
     
-    <!-- Grammar fill-in-the-blank (visible in grammar mode) -->
-    <div id="grammarCard" style="display:none; width:100%; margin-top:8px">
-      <div style="text-align:center; margin-bottom:4px">
-        <span class="topic-badge" id="grammarTopic"></span>
-      </div>
-      <div class="grammar-sentence" id="grammarSentence"></div>
-      <div class="grammar-translation" id="grammarTranslation"></div>
-      <div class="btn-grammar-opts" id="grammarOpts"></div>
-    </div></div>
-
-    <div class="swipe-hint" id="swipeHint">← der &nbsp;·&nbsp; die → &nbsp;·&nbsp; ↑ das</div>
         <div class="card-hint">tap to reveal · swipe to answer</div>
       </div>
       <div class="card-face card-back">
@@ -599,7 +598,8 @@
     <button class="btn-article btn-das" onclick="answer('das')">das</button>
   </div>
   <div class="keyboard-hint">(1) der &nbsp; (2) die &nbsp; (3) das &nbsp;·&nbsp; Space: flip</div>
-</div>
+
+</div><!-- /#gameScreen -->
 
 <!-- ── DONE SCREEN ── -->
 <div class="screen" id="doneScreen" style="display:none">
