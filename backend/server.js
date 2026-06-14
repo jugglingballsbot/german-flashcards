@@ -54,19 +54,9 @@ db.exec(`
     PRIMARY KEY (userId, date)
   );
 
-  -- Group membership (auto-populated when users open the app in a group)
-  CREATE TABLE IF NOT EXISTS group_members (
-    groupId   TEXT NOT NULL,
-    userId    TEXT NOT NULL,
-    userName  TEXT NOT NULL,
-    updatedAt TEXT DEFAULT (datetime('now')),
-    PRIMARY KEY (groupId, userId)
-  );
-
   CREATE INDEX IF NOT EXISTS idx_cr_userId  ON card_results(userId);
   CREATE INDEX IF NOT EXISTS idx_ses_userId ON sessions(userId);
   CREATE INDEX IF NOT EXISTS idx_dp_userId  ON daily_progress(userId);
-  CREATE INDEX IF NOT EXISTS idx_gm_groupId ON group_members(groupId);
 `);
 
 app.use(cors());
@@ -150,55 +140,6 @@ app.get('/api/weak-words/:userId', (req, res) => {
     LIMIT 8
   `).all(userId);
   res.json(rows.map(r => r.word));
-});
-
-// ── Group: join ──────────────────────────────────────────────────────────
-// Called when a user opens the app inside a group. Registers/refreshes membership.
-app.post('/api/group/:groupId/join', (req, res) => {
-  const { groupId } = req.params;
-  const { userId, userName } = req.body;
-  if (!userId || !userName) return res.status(400).json({ error: 'Missing fields' });
-  db.prepare(`
-    INSERT INTO group_members (groupId, userId, userName, updatedAt)
-    VALUES (?, ?, ?, datetime('now'))
-    ON CONFLICT(groupId, userId) DO UPDATE SET
-      userName  = excluded.userName,
-      updatedAt = excluded.updatedAt
-  `).run(groupId, userId, userName);
-  res.json({ ok: true });
-});
-
-// ── Group: leaderboard ────────────────────────────────────────────────────
-// Returns ranked members with today's correct count + all-time accuracy.
-app.get('/api/group/:groupId/leaderboard', (req, res) => {
-  const { groupId } = req.params;
-  const today = new Date().toISOString().slice(0, 10);
-
-  const rows = db.prepare(`
-    SELECT
-      gm.userId,
-      gm.userName,
-      COALESCE(dp.answeredToday, 0)               AS correctToday,
-      COALESCE(us.dailyGoal, 20)                  AS dailyGoal,
-      COALESCE(st.totalSessions, 0)               AS totalSessions,
-      COALESCE(CAST(st.accuracy AS INTEGER), 0)   AS accuracy,
-      gm.updatedAt                                AS lastSeen
-    FROM group_members gm
-    LEFT JOIN daily_progress dp
-           ON dp.userId = gm.userId AND dp.date = ?
-    LEFT JOIN user_settings us
-           ON us.userId = gm.userId
-    LEFT JOIN (
-      SELECT userId,
-             COUNT(*)  AS totalSessions,
-             ROUND(CAST(SUM(correct) AS REAL) / NULLIF(SUM(total), 0) * 100) AS accuracy
-      FROM sessions GROUP BY userId
-    ) st ON st.userId = gm.userId
-    WHERE gm.groupId = ?
-    ORDER BY correctToday DESC, st.accuracy DESC, gm.userName
-  `).all(today, groupId);
-
-  res.json(rows);
 });
 
 // ── Daily progress (GET) ──────────────────────────────────────────────────

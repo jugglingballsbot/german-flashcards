@@ -375,56 +375,6 @@
     to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
   }
 
-  /* ── Leaderboard ── */
-  .btn-back {
-    padding: 6px 14px;
-    background: rgba(255,255,255,0.07);
-    border: 1.5px solid rgba(255,255,255,0.12);
-    border-radius: 20px;
-    color: var(--tg-theme-text-color, #eee);
-    font-size: 0.82rem; cursor: pointer;
-  }
-  .btn-back:active { opacity: 0.7; }
-
-  .lb-icon-btn {
-    background: rgba(255,255,255,0.07);
-    border: 1.5px solid rgba(255,255,255,0.12);
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 1rem; cursor: pointer;
-  }
-  .lb-icon-btn:active { opacity: 0.7; }
-
-  .btn-leaderboard {
-    margin-top: 10px; width: 100%; padding: 14px;
-    background: rgba(251,191,36,0.12);
-    color: #fbbf24;
-    border: 1.5px solid rgba(251,191,36,0.3);
-    border-radius: 14px; font-size: 0.95rem; font-weight: 600;
-    cursor: pointer; transition: opacity 0.2s;
-  }
-  .btn-leaderboard:active { opacity: 0.8; }
-
-  .lb-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 4px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .lb-me {
-    background: rgba(91,156,246,0.1);
-    border-radius: 12px; padding: 12px;
-    margin: 2px -4px;
-    border-bottom: none;
-  }
-  .lb-rank { font-size: 1.3rem; min-width: 34px; text-align: center; }
-  .lb-info { flex: 1; min-width: 0; }
-  .lb-name { font-weight: 600; font-size: 0.93rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lb-sub  { font-size: 0.75rem; opacity: 0.5; margin: 2px 0 5px; }
-  .lb-bar-wrap { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
-  .lb-bar      { height: 100%; background: #5b9cf6; border-radius: 2px; transition: width 0.5s; }
-  .lb-right { font-size: 0.72rem; opacity: 0.35; text-align: right; min-width: 52px; line-height: 1.4; }
-  .lb-placeholder { padding: 48px 0; text-align: center; opacity: 0.4; font-size: 0.9rem; }
-
   /* ── Done screen ── */
   .done-emoji  { font-size: 3rem; margin-bottom: 6px; }
   .done-title  { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
@@ -465,21 +415,11 @@
 <!-- ── GOAL TOAST ── -->
 <div class="goal-toast" id="goalToast" style="display:none">🎯 Daily goal reached!</div>
 
-<!-- ── LEADERBOARD SCREEN ── -->
-<div class="screen" id="leaderboardScreen" style="display:none">
-  <div class="header-row">
-    <h1 id="lbGroupName">🏆 Leaderboard</h1>
-    <button class="btn-back" onclick="goMenu()">← Back</button>
-  </div>
-  <div id="lbList"><div class="lb-placeholder">Loading…</div></div>
-</div>
-
 <!-- ── START SCREEN ── -->
 <div class="screen" id="startScreen">
   <div class="header-row">
     <h1>🇩🇪 German Articles</h1>
     <div class="header-badges">
-      <button class="lb-icon-btn" id="lbStartBtn" style="display:none" onclick="showLeaderboard()">🏆</button>
       <div class="streak-badge" id="streakBadgeStart" style="display:none"></div>
     </div>
   </div>
@@ -535,10 +475,6 @@
 
   <button class="btn-start" id="startBtn" onclick="startGame()">Start →</button>
 
-  <!-- Group leaderboard (only in group context) -->
-  <button class="btn-leaderboard" id="lbFullBtn" style="display:none" onclick="showLeaderboard()">
-    🏆 View Group Leaderboard
-  </button>
   <div class="info-msg" id="startMsg"></div>
 </div>
 
@@ -621,7 +557,6 @@ const API_BASE = 'https://46.225.99.97.nip.io/api';
 // ── Identity & group context ──────────────────────────────────────────────
 const TG      = window.Telegram?.WebApp;
 const _tgUser = TG?.initDataUnsafe?.user;
-const _tgChat = TG?.initDataUnsafe?.chat;
 
 function resolveUserId() {
   const tgId = _tgUser?.id?.toString();
@@ -637,9 +572,6 @@ const USER_ID   = resolveUserId();
 const USER_NAME = _tgUser
   ? [_tgUser.first_name, _tgUser.last_name].filter(Boolean).join(' ')
   : 'Player';
-const GROUP_ID   = _tgChat?.id?.toString() || null;
-const GROUP_NAME = _tgChat?.title          || 'Group';
-const IS_GROUP   = !!GROUP_ID;
 
 // ── Card data ──────────────────────────────────────────────────────────────
 const CARDS = [
@@ -1026,12 +958,6 @@ function selectPill(btn) {
 async function setupStart() {
   renderStreak('streakBadgeStart');
 
-  if (IS_GROUP) {
-    document.getElementById('lbStartBtn').style.display = '';
-    document.getElementById('lbFullBtn').style.display  = '';
-    apiPost(`/group/${GROUP_ID}/join`, { userId: USER_ID, userName: USER_NAME });
-  }
-
   const [daily, ww] = await Promise.all([
     apiGet(`/daily/${USER_ID}`),
     apiGet(`/weak-words/${USER_ID}`)
@@ -1294,50 +1220,9 @@ async function showDone() {
   } catch(_) {}
 }
 
-// ── Leaderboard ───────────────────────────────────────────────────────────
-async function showLeaderboard() {
-  if (!IS_GROUP) return;
-  ['startScreen','doneScreen','gameScreen'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('leaderboardScreen').style.display = '';
-  document.getElementById('lbGroupName').textContent = `🏆 ${GROUP_NAME}`;
-  document.getElementById('lbList').innerHTML = '<div class="lb-placeholder">Loading…</div>';
-
-  const data = await apiGet(`/group/${GROUP_ID}/leaderboard`);
-  if (!data || data.length === 0) {
-    document.getElementById('lbList').innerHTML =
-      '<div class="lb-placeholder">No members yet — be the first to play!</div>';
-    return;
-  }
-
-  const medals = ['🥇','🥈','🥉'];
-  document.getElementById('lbList').innerHTML = data.map((m, i) => {
-    const isMe  = m.userId === USER_ID;
-    const rank  = medals[i] || `<span style="opacity:.5;font-size:.88rem">${i+1}</span>`;
-    const pct   = m.dailyGoal > 0 ? Math.min(100, Math.round(m.correctToday / m.dailyGoal * 100)) : 0;
-    const name  = escHtml(m.userName) + (isMe ? ' <span style="opacity:.45;font-size:.78rem">(you)</span>' : '');
-    const sub   = `${m.correctToday}/${m.dailyGoal} today &nbsp;·&nbsp; ${m.accuracy}% acc`;
-    const right = m.totalSessions > 0 ? `${m.totalSessions}<br><span>sessions</span>` : 'new';
-    return `
-      <div class="lb-row${isMe ? ' lb-me' : ''}">
-        <div class="lb-rank">${rank}</div>
-        <div class="lb-info">
-          <div class="lb-name">${name}</div>
-          <div class="lb-sub">${sub}</div>
-          <div class="lb-bar-wrap"><div class="lb-bar" style="width:${pct}%"></div></div>
-        </div>
-        <div class="lb-right">${right}</div>
-      </div>`;
-  }).join('');
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
 // ── Navigation ─────────────────────────────────────────────────────────────
 function goMenu() {
-  ['doneScreen','gameScreen','leaderboardScreen'].forEach(id =>
+  ['doneScreen','gameScreen'].forEach(id =>
     document.getElementById(id).style.display = 'none');
   document.getElementById('startScreen').style.display = '';
   renderStreak('streakBadgeStart');
