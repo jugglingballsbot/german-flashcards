@@ -17,8 +17,11 @@ A Telegram Mini App for learning German articles (der / die / das) and grammar (
 
 ### Grammar ✏️ (fill-in-the-blank)
 - A sentence is shown with a `___` blank
-- Pick the correct word from 4 options
+- Pick the correct word from 4 options (or press **1–4** on keyboard)
 - Correct answer fills in the blank (green), translation shown below
+- Live session counter (✅ / ❌) in the header
+- Haptic + audio feedback on each answer
+- Correct answers count toward your **daily goal**
 - Topics: Conjunctions · Prepositions · Modals · Verbs (sein/haben)
 
 ---
@@ -172,8 +175,23 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 - [x] 9 word categories (211 cards, A1–B1)
 - [x] Daily goal + streak tracking
 - [x] Spaced repetition (weak words surfaced more often)
-- [x] Grammar mode (fill-in-the-blank, 40 cards)
+- [x] Grammar mode (fill-in-the-blank, 40 cards, 4 topics)
+- [x] Keyboard support (1–4 for grammar, 1–3 for articles)
+- [x] Haptic + audio feedback in both modes
 - [ ] More grammar cards (negation, accusative, adjective endings)
 - [ ] A2/B1 grammar cards
 - [ ] Translation mode (German → English multiple choice)
 - [ ] Weekly progress report from bot
+- [ ] Grammar mode session summary screen
+
+---
+
+## Changelog
+
+### 2026-06-14
+- Added Grammar mode (fill-in-the-blank, 40 cards)
+- Added 141 new A1 words; total now 211 cards
+- Expanded categories: split `everyday` into `home`, `office`, `city`, `leisure`, `people`
+- Removed leaderboard
+- Added Telegram bot (`bot.js`) for `/flashcards` command in groups
+- Polished grammar mode: keyboard nav, haptics, audio, session counter
