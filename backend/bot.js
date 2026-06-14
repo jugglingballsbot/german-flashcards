@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const DEFAULT_MINI_APP_URL = 'https://jugglingballsbot.github.io/german-flashcards/';
 
 function isGroupChat(chat = {}) {
@@ -35,7 +37,7 @@ function registerLeaderboardHandlers(bot, { miniAppUrl = DEFAULT_MINI_APP_URL, p
     }
   };
 
-  bot.onText(/\/(start|leaderboard)(?:@\w+)?(?:\s|$)/, handler);
+  bot.onText(/\/(start|leaderboard|play|flashcards)(?:@\w+)?(?:\s|$)/, handler);
 }
 
 class TelegramBotClient {
@@ -115,13 +117,25 @@ class TelegramBotClient {
 }
 
 function startTelegramBot({ token, miniAppUrl, pin } = {}) {
-  if (!token) return null;
+  const botToken = token || process.env.TELEGRAM_BOT_TOKEN || process.env.BOT_TOKEN;
+  if (!botToken) return null;
 
-  const bot = new TelegramBotClient(token);
-  registerLeaderboardHandlers(bot, { miniAppUrl, pin });
+  const bot = new TelegramBotClient(botToken);
+  registerLeaderboardHandlers(bot, {
+    miniAppUrl: miniAppUrl || process.env.MINI_APP_URL || DEFAULT_MINI_APP_URL,
+    pin: pin ?? process.env.PIN_LEADERBOARD_MESSAGE,
+  });
   bot.startPolling();
-  console.log('Telegram bot polling enabled for group Mini App launch buttons');
+  console.log('German Flashcards Telegram bot started');
   return bot;
+}
+
+if (require.main === module) {
+  const bot = startTelegramBot({});
+  if (!bot) {
+    console.error('TELEGRAM_BOT_TOKEN is not set');
+    process.exit(1);
+  }
 }
 
 module.exports = {
