@@ -1,19 +1,52 @@
 # 🇩🇪 German Articles Flashcards
 
-A Telegram Mini App for learning German articles (der / die / das) with spaced repetition and progress tracking.
+A Telegram Mini App for learning German articles (der / die / das) and grammar (fill-in-the-blank) with spaced repetition and progress tracking.
 
 **Live app:** [t.me/JugglingBallsBot/German](https://t.me/JugglingBallsBot/German)  
 **Hosted at:** https://jugglingballsbot.github.io/german-flashcards/
 
 ---
 
-## How It Works
+## Game Modes
 
-1. A card shows a German noun + English translation
-2. You tap **der**, **die**, or **das**
-3. The card flips to reveal the correct answer
-4. At the end of a round, you see which words you got wrong
-5. Your results are sent to the backend — weak words appear more often next time (spaced repetition)
+### Articles 🏷️
+- A card shows a German noun + English translation
+- Tap **der**, **die**, or **das**
+- Card flips to reveal the correct article
+- Wrong answers are tracked for spaced repetition
+
+### Grammar ✏️ (fill-in-the-blank)
+- A sentence is shown with a `___` blank
+- Pick the correct word from 4 options
+- Correct answer fills in the blank (green), translation shown below
+- Topics: Conjunctions · Prepositions · Modals · Verbs (sein/haben)
+
+---
+
+## Word Library
+
+**211 article cards** across 9 categories (all A1–B1):
+
+| Category | Count |
+|----------|------:|
+| Food 🍎 | 67 |
+| Office 💼 | 31 |
+| City 🏛️ | 26 |
+| Home 🏠 | 23 |
+| Leisure ⚽ | 17 |
+| Animals 🐾 | 15 |
+| People 👥 | 12 |
+| Colors 🎨 | 10 |
+| Numbers 🔢 | 10 |
+
+**40 grammar cards** across 4 topics (all A1):
+
+| Topic | Count |
+|-------|------:|
+| Conjunctions 🔗 | 10 |
+| Prepositions 📍 | 14 |
+| Modals ⚙️ | 8 |
+| Verbs (sein/haben) 🔄 | 8 |
 
 ---
 
@@ -22,20 +55,23 @@ A Telegram Mini App for learning German articles (der / die / das) with spaced r
 ```
 Telegram Mini App (GitHub Pages)
         │
-        │ POST /api/card-result   (after each card)
-        │ POST /api/session        (end of round)
-        │ GET  /api/weak-words/:id (on load, to prioritize weak cards)
+        │ POST /api/card-result
+        │ POST /api/session
+        │ GET  /api/weak-words/:id
+        │ GET  /api/daily/:id
+        │ POST /api/daily/:id
         ▼
   nginx (HTTPS, 46.225.99.97.nip.io)
         │
         ▼
-  Node.js API (port 3456)
+  Node.js API (port 3456, server.js)
         │
         ▼
   SQLite (backend/data/flashcards.db)
-        │
-        ▼
-  JugglingBallsBot (Telegram) ← can query stats anytime
+
+  JugglingBallsBot (bot.js, pm2: flashcards-bot)
+  → responds to /flashcards in Telegram groups
+  → sends inline button that opens the Mini App
 ```
 
 ---
@@ -44,14 +80,20 @@ Telegram Mini App (GitHub Pages)
 
 ```
 german-flashcards/
-├── index.html          # Mini App frontend (deployed to GitHub Pages)
-├── README.md           # This file
-├── flag.png            # BotFather app photo (640x360)
-└── backend/
-    ├── server.js       # Express API server
-    ├── package.json
-    └── data/
-        └── flashcards.db   # SQLite database (auto-created)
+├── index.html              # Mini App frontend (deployed to GitHub Pages)
+├── README.md               # This file
+├── flag.png                # BotFather app photo
+├── backend/
+│   ├── server.js           # Express API server
+│   ├── bot.js              # Telegram bot (pm2: flashcards-bot)
+│   ├── .env                # BOT_TOKEN + MINI_APP_URL (not committed)
+│   ├── package.json
+│   └── data/
+│       └── flashcards.db   # SQLite database (auto-created)
+└── scripts/
+    ├── new_words.py        # Script to generate word entries from raw lists
+    ├── recategorize.py     # Script to re-categorize all cards
+    └── add_grammar.py      # Script that added Grammar mode
 ```
 
 ---
@@ -60,151 +102,78 @@ german-flashcards/
 
 ### `POST /api/card-result`
 Record a single card answer.
-
 ```json
-{
-  "userId": "283951220",
-  "word": "Hund",
-  "article": "der",
-  "chosen": "die",
-  "correct": false,
-  "sessionId": "uuid-string"
-}
+{ "userId":"283951220","word":"Hund","article":"der","chosen":"die","correct":false,"sessionId":"uuid" }
 ```
 
 ### `POST /api/session`
 Record end-of-session summary.
-
 ```json
-{
-  "userId": "283951220",
-  "sessionId": "uuid-string",
-  "correct": 12,
-  "wrong": 3,
-  "total": 15,
-  "durationMs": 45000
-}
+{ "userId":"283951220","sessionId":"uuid","correct":12,"wrong":3,"total":15,"durationMs":45000 }
 ```
 
 ### `GET /api/stats/:userId`
-Returns progress summary for a user.
-
-```json
-{
-  "userId": "283951220",
-  "totalSessions": 8,
-  "totalCards": 120,
-  "totalCorrect": 98,
-  "accuracy": 82,
-  "weakWords": ["Fenster", "Schule"],
-  "lastSession": "2026-06-12T20:00:00Z"
-}
-```
+Returns all-time progress summary.
 
 ### `GET /api/weak-words/:userId`
-Returns list of words the user struggles with (wrong > correct, or recently wrong).
+Returns words the user struggles with (wrong > correct).
 
+### `GET /api/daily/:userId`
+Returns today's progress + daily goal + resumable deck state.
+
+### `POST /api/daily/:userId`
+Upserts today's progress. Optionally updates goal.
 ```json
-["Fenster", "Schule", "Kind"]
+{ "answeredToday":12,"goal":20,"deckWords":[...],"deckCurrentIdx":12 }
 ```
 
 ---
 
 ## Backend Setup (VPS)
 
-### Requirements
-- Node.js 18+
-- nginx
-- certbot (for HTTPS)
-
-### Install & Run
-
 ```bash
 cd /root/.openclaw/workspace/projects/german-flashcards/backend
 npm install
-node server.js   # or via systemd (see below)
+# Start API (direct)
+node server.js
+# Start bot via pm2
+pm2 start bot.js --name flashcards-bot
+pm2 save
 ```
 
-### Systemd Service
-
-Service file: `/etc/systemd/system/german-flashcards-api.service`
-
-```bash
-# Start
-systemctl start german-flashcards-api
-
-# Stop
-systemctl stop german-flashcards-api
-
-# Restart after code changes
-systemctl restart german-flashcards-api
-
-# View logs
-journalctl -u german-flashcards-api -f
-```
-
-### Nginx Config
-
-Located at `/etc/nginx/sites-available/german-flashcards-api`
-
-Proxies `https://46.225.99.97.nip.io/api/*` → `http://localhost:3456/`
-
-```bash
-# Test config
-nginx -t
-
-# Reload
-systemctl reload nginx
-```
-
-### SSL Certificate
-
-Issued by Let's Encrypt for `46.225.99.97.nip.io` via certbot.
-
-```bash
-# Renew (auto via cron, or manually)
-certbot renew
-```
+API runs at `http://127.0.0.1:3456`, proxied by nginx to `https://46.225.99.97.nip.io`.
 
 ---
 
 ## Adding More Words
 
-Edit the `CARDS` array in `index.html`:
+Edit the `CARDS` array in `index.html` following the existing pattern, or use `scripts/new_words.py` to generate entries from a word list. Then push — GitHub Pages auto-deploys in ~30s.
 
+Categories: `animals` · `food` · `home` · `office` · `city` · `leisure` · `people` · `colors` · `numbers`
+
+## Adding Grammar Cards
+
+Add entries to the `GRAMMAR_CARDS` array in `index.html`:
 ```js
-{ word: "Tür",    article: "die", en: "door" },
-{ word: "Stuhl",  article: "der", en: "chair" },
-{ word: "Bett",   article: "das", en: "bed" },
+{ sentence:'Ich gehe ___ Hause.',
+  answer:'nach',
+  options:['nach','zu','bei','von'],
+  topic:'prepositions',
+  diff:'A1',
+  translation:'I am going home.' }
 ```
-
-Then push to GitHub — Pages auto-deploys within ~30 seconds.
-
----
-
-## Asking the Bot for Your Stats
-
-In Telegram, just ask:
-> "How am I doing on the German flashcards?"
-> "Which German words do I keep getting wrong?"
-> "Show me my flashcard progress"
-
-The bot can query the API and give you a summary.
-
----
-
-## Sharing
-
-- **Direct link:** https://jugglingballsbot.github.io/german-flashcards/
-- **Telegram link:** https://t.me/JugglingBallsBot/German
-- **In a chat:** the bot can send an inline button that opens the app
+Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 
 ---
 
 ## Roadmap
 
-- [ ] More word categories (colors, numbers, body parts, food)
-- [ ] Difficulty levels (A1 → B2)
+- [x] Article guessing game (der/die/das)
+- [x] 9 word categories (211 cards, A1–B1)
+- [x] Daily goal + streak tracking
+- [x] Spaced repetition (weak words surfaced more often)
+- [x] Grammar mode (fill-in-the-blank, 40 cards)
+- [ ] More grammar cards (negation, accusative, adjective endings)
+- [ ] A2/B1 grammar cards
+- [ ] Translation mode (German → English multiple choice)
 - [ ] Weekly progress report from bot
-- [ ] Leaderboard for groups
-- [ ] Other languages (Spanish, Italian...)
