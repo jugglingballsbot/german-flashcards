@@ -451,6 +451,9 @@
   .btn-grammar-opt.correct { background: rgba(74,222,128,0.3)  !important; border-color: #4ade80 !important; color: #4ade80 !important; }
   .btn-grammar-opt.wrong   { background: rgba(248,113,113,0.3) !important; border-color: #f87171 !important; color: #f87171 !important; opacity: 0.7; }
   .btn-grammar-opt:disabled { cursor: default; }
+  .grammar-counter { display: inline-block; margin-left: 10px; font-size: 0.75rem; opacity: 0.5; }
+  .grammar-key-hint { font-size: 0.7rem; opacity: 0.25; text-align: center; margin-top: 10px; }
+  @media (pointer: coarse) { .grammar-key-hint { display: none; } }
 
 </style>
 </head>
@@ -557,7 +560,7 @@
 
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-  <div class="score-row">
+  <div class="score-row" id="scoreRow">
     <div class="score-item score-correct">✅ <span id="scoreCorrect">0</span></div>
     <div class="score-item score-wrong">❌ <span id="scoreWrong">0</span></div>
     <div class="score-item">Card <span id="cardNum">1</span>/<span id="cardTotal">?</span></div>
@@ -565,12 +568,14 @@
 
     <!-- Grammar fill-in-the-blank (visible in grammar mode) -->
   <div id="grammarCard" style="display:none; width:100%; margin-top:8px">
-    <div style="text-align:center; margin-bottom:4px">
+    <div style="text-align:center; margin-bottom:6px">
       <span class="topic-badge" id="grammarTopic"></span>
+      <span class="grammar-counter" id="grammarCounter">✅ 0  ❌ 0</span>
     </div>
     <div class="grammar-sentence" id="grammarSentence"></div>
     <div class="grammar-translation" id="grammarTranslation"></div>
     <div class="btn-grammar-opts" id="grammarOpts"></div>
+    <div class="grammar-key-hint">(1) (2) (3) (4) to answer</div>
   </div>
 
   <div class="card-scene" id="cardScene">
@@ -598,7 +603,7 @@
     <button class="btn-article btn-die" onclick="answer('die')">die</button>
     <button class="btn-article btn-das" onclick="answer('das')">das</button>
   </div>
-  <div class="keyboard-hint">(1) der &nbsp; (2) die &nbsp; (3) das &nbsp;·&nbsp; Space: flip</div>
+  <div class="keyboard-hint" id="kbHint">(1) der &nbsp; (2) die &nbsp; (3) das &nbsp;·&nbsp; Space: flip</div>
 
 </div><!-- /#gameScreen -->
 
@@ -928,11 +933,13 @@ const GRAMMAR_CARDS = [
 ];
 
 // ── Grammar game state ─────────────────────────────────────────────────────
-let grammarDeck        = [];
-let grammarIdx         = 0;
-let grammarAnswered    = false;
-let selectedGameMode   = 'articles';  // 'articles' | 'grammar'
-let selectedGrammarCat = 'all';
+let grammarDeck            = [];
+let grammarIdx             = 0;
+let grammarAnswered        = false;
+let selectedGameMode       = 'articles';  // 'articles' | 'grammar'
+let selectedGrammarCat     = 'all';
+let grammarSessionCorrect  = 0;
+let grammarSessionWrong    = 0;
 
 // ── Grammar helpers ────────────────────────────────────────────────────────
 function getGrammarDeck() {
@@ -943,8 +950,13 @@ function getGrammarDeck() {
 
 function loadGrammarCard() {
   if (grammarIdx >= grammarDeck.length) {
-    grammarIdx = 0;
+    // Reshuffle but ensure first card of new deck != last card of previous
+    const last = grammarDeck[grammarDeck.length - 1];
     grammarDeck = getGrammarDeck();
+    if (last && grammarDeck.length > 1 && grammarDeck[0] === last) {
+      [grammarDeck[0], grammarDeck[1]] = [grammarDeck[1], grammarDeck[0]];
+    }
+    grammarIdx = 0;
   }
   const card = grammarDeck[grammarIdx];
   grammarAnswered = false;
@@ -974,6 +986,11 @@ function answerGrammar(btn, chosen, correct) {
   const isCorrect = chosen === correct;
   btn.classList.add(isCorrect ? 'correct' : 'wrong');
 
+  // Haptic feedback
+  try { TG?.HapticFeedback?.notificationOccurred(isCorrect ? 'success' : 'error'); } catch(_) {}
+  // Audio feedback (reuse same tones as article mode)
+  playTone(isCorrect ? 660 : 220, 120, 'sine', 0.15);
+
   // Disable all buttons & highlight correct answer
   document.querySelectorAll('.btn-grammar-opt').forEach(b => {
     b.disabled = true;
@@ -989,11 +1006,16 @@ function answerGrammar(btn, chosen, correct) {
       '___', `<span class="grammar-blank" style="color:#4ade80">${correct}</span>`
     );
 
-  // Track daily progress
+  // Track grammar session stats
+  grammarSessionCorrect += isCorrect ? 1 : 0;
+  grammarSessionWrong   += isCorrect ? 0 : 1;
+  updateGrammarCounter();
+
+  // Track daily progress (only on correct)
   if (isCorrect) {
     dailyAnsweredToday++;
     updateGoalUI();
-    updateGoalBadge();
+    updateGameGoalBadge();
     if (dailyAnsweredToday === dailyGoal) showGoalToast();
     apiPost(`/daily/${USER_ID}`, { answeredToday: dailyAnsweredToday, goal: dailyGoal });
   }
@@ -1002,6 +1024,11 @@ function answerGrammar(btn, chosen, correct) {
     grammarIdx++;
     loadGrammarCard();
   }, 1600);
+}
+
+function updateGrammarCounter() {
+  const el = document.getElementById('grammarCounter');
+  if (el) el.textContent = `✅ ${grammarSessionCorrect}  ❌ ${grammarSessionWrong}`;
 }
 
 
@@ -1206,12 +1233,17 @@ function startGrammarGame() {
   document.getElementById('doneScreen').style.display  = 'none';
   document.getElementById('gameScreen').style.display  = '';
 
-  // Show grammar card, hide article card elements
-  document.getElementById('grammarCard').style.display  = '';
-  document.getElementById('swipeHint').style.display    = 'none';
-  document.getElementById('answers').style.display      = 'none';
-  document.querySelector('.card-hint') && (document.querySelector('.card-hint').style.display = 'none');
-  document.querySelector('.keyboard-hint') && (document.querySelector('.keyboard-hint').style.display = 'none');
+  // Reset session counters
+  grammarSessionCorrect = 0;
+  grammarSessionWrong   = 0;
+  updateGrammarCounter();
+
+  // Show grammar card, hide article-specific elements
+  document.getElementById('grammarCard').style.display = '';
+  document.getElementById('cardScene').style.display   = 'none';
+  document.getElementById('answers').style.display     = 'none';
+  document.getElementById('scoreRow').style.display    = 'none';
+  document.getElementById('kbHint').style.display      = 'none';
 
   grammarDeck = getGrammarDeck();
   grammarIdx  = 0;
@@ -1461,12 +1493,11 @@ function goMenu() {
     document.getElementById(id).style.display = 'none');
   document.getElementById('startScreen').style.display = '';
   // Restore article card elements (may have been hidden by grammar mode)
-  const answersEl = document.getElementById('answers');
-  if (answersEl) answersEl.style.display = '';
-  const swipeHint = document.getElementById('swipeHint');
-  if (swipeHint) swipeHint.style.display = '';
-  const grammarCardEl = document.getElementById('grammarCard');
-  if (grammarCardEl) grammarCardEl.style.display = 'none';
+  document.getElementById('answers').style.display   = '';
+  document.getElementById('cardScene').style.display = '';
+  document.getElementById('scoreRow').style.display  = '';
+  document.getElementById('kbHint').style.display    = '';
+  document.getElementById('grammarCard').style.display = 'none';
   renderStreak('streakBadgeStart');
   updateGoalUI();
   updateContinueBtn();
@@ -1505,6 +1536,16 @@ cardScene.addEventListener('click', () => {
 // ── Keyboard ───────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (document.getElementById('gameScreen').style.display === 'none') return;
+  // Grammar mode: number keys select options
+  if (selectedGameMode === 'grammar') {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 4) {
+      const opts = document.querySelectorAll('.btn-grammar-opt');
+      if (opts[n - 1] && !opts[n - 1].disabled) opts[n - 1].click();
+    }
+    return;
+  }
+  // Article mode
   if      (e.key === '1')                      answer('der');
   else if (e.key === '2')                      answer('die');
   else if (e.key === '3')                      answer('das');
