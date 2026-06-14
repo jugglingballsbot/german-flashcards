@@ -7,11 +7,14 @@ function isGroupChat(chat = {}) {
 }
 
 function buildOpenFlashcardsOptions(miniAppUrl) {
+  // Telegram rejects InlineKeyboardButton.web_app in groups with
+  // BUTTON_TYPE_INVALID. A URL button is valid in groups; if this URL is a
+  // BotFather Mini App deep link, Telegram opens it as a Mini App.
   return {
     reply_markup: {
       inline_keyboard: [[{
         text: 'Open Flashcards 🃏',
-        web_app: { url: miniAppUrl },
+        url: miniAppUrl,
       }]],
     },
   };

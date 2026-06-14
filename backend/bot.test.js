@@ -14,20 +14,20 @@ test('isGroupChat detects Telegram group contexts only', () => {
   assert.equal(isGroupChat({}), false);
 });
 
-test('buildOpenFlashcardsOptions creates a Telegram web_app inline button', () => {
+test('buildOpenFlashcardsOptions creates a Telegram URL inline button for group chats', () => {
   const options = buildOpenFlashcardsOptions('https://example.com/app');
 
   assert.deepEqual(options, {
     reply_markup: {
       inline_keyboard: [[{
         text: 'Open Flashcards 🃏',
-        web_app: { url: 'https://example.com/app' },
+        url: 'https://example.com/app',
       }]],
     },
   });
 });
 
-test('registerLeaderboardHandlers replies with the Mini App button in groups and pins when enabled', async () => {
+test('registerLeaderboardHandlers replies with the Mini App URL button in groups and pins when enabled', async () => {
   const handlers = new Map();
   const calls = [];
   const bot = {
@@ -46,7 +46,7 @@ test('registerLeaderboardHandlers replies with the Mini App button in groups and
     pin: true,
   });
 
-  const handler = handlers.get('/\\/(start|leaderboard)(?:@\\w+)?(?:\\s|$)/.toString()') || [...handlers.values()][0];
+  const handler = handlers.get('/\\/(start|leaderboard|play|flashcards)(?:@\\w+)?(?:\\s|$)/.toString()') || [...handlers.values()][0];
   assert.ok(handler, 'expected a /start or /leaderboard handler to be registered');
 
   await handler({ chat: { id: -100123, type: 'supergroup' } });
@@ -56,7 +56,7 @@ test('registerLeaderboardHandlers replies with the Mini App button in groups and
       reply_markup: {
         inline_keyboard: [[{
           text: 'Open Flashcards 🃏',
-          web_app: { url: 'https://example.com/app' },
+          url: 'https://example.com/app',
         }]],
       },
     }],
