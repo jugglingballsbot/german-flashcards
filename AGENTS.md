@@ -91,8 +91,9 @@ GitHub remote: `https://github.com/jugglingballsbot/german-flashcards.git` (bran
 
 **Grammar ✏️** — fill-in-the-blank sentences.
 - 40 cards across 4 topics: `conjunctions`, `prepositions`, `modals`, `verbs` (sein/haben)
-- All A1
+- All A1 currently (A2/B1 ready to be added)
 - 4 multiple-choice options per card
+- Filters: Topic + Difficulty (A1 / A2 / B1) — same UX as articles
 - Cards stored in `GRAMMAR_CARDS = [...]` array in `index.html` (~lines 875+)
 
 ### Cross-Mode Features

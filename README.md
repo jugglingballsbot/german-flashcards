@@ -42,14 +42,16 @@ A Telegram Mini App for learning German articles (der / die / das) and grammar (
 | Colors 🎨 | 10 |
 | Numbers 🔢 | 10 |
 
-**40 grammar cards** across 4 topics (all A1):
+**40 grammar cards** across 4 topics (all A1, A2/B1 ready to be added):
 
-| Topic | Count |
-|-------|------:|
+| Topic | A1 |
+|-------|---:|
 | Conjunctions 🔗 | 10 |
 | Prepositions 📍 | 14 |
 | Modals ⚙️ | 8 |
 | Verbs (sein/haben) 🔄 | 8 |
+
+Grammar mode has both **Topic** and **Difficulty** filters (A1 / A2 / B1).
 
 ---
 

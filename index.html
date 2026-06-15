@@ -531,7 +531,7 @@
   </div> <!-- /#articleFilters -->
 
 
-  <!-- Grammar categories (visible in grammar mode only) -->
+  <!-- Grammar filters (visible in grammar mode only) -->
   <div id="grammarCatSection" style="display:none">
     <div class="section-label">Topic</div>
     <div class="pill-row">
@@ -540,6 +540,14 @@
       <button class="pill"        data-group="gcat" data-val="prepositions" onclick="selectPill(this)">Prepositions 📍</button>
       <button class="pill"        data-group="gcat" data-val="modals"       onclick="selectPill(this)">Modals ⚙️</button>
       <button class="pill"        data-group="gcat" data-val="verbs"        onclick="selectPill(this)">Verbs 🔄</button>
+    </div>
+
+    <div class="section-label">Difficulty</div>
+    <div class="pill-row">
+      <button class="pill active" data-group="gdiff" data-val="all" onclick="selectPill(this)">All</button>
+      <button class="pill"        data-group="gdiff" data-val="A1"  onclick="selectPill(this)">A1</button>
+      <button class="pill"        data-group="gdiff" data-val="A2"  onclick="selectPill(this)">A2</button>
+      <button class="pill"        data-group="gdiff" data-val="B1"  onclick="selectPill(this)">B1</button>
     </div>
   </div>
 
@@ -938,13 +946,17 @@ let grammarIdx             = 0;
 let grammarAnswered        = false;
 let selectedGameMode       = 'articles';  // 'articles' | 'grammar'
 let selectedGrammarCat     = 'all';
+let selectedGrammarDiff    = 'all';
 let grammarSessionCorrect  = 0;
 let grammarSessionWrong    = 0;
 
 // ── Grammar helpers ────────────────────────────────────────────────────────
 function getGrammarDeck() {
-  const cat = selectedGrammarCat;
-  return GRAMMAR_CARDS.filter(c => cat === 'all' || c.topic === cat)
+  const cat  = selectedGrammarCat;
+  const diff = selectedGrammarDiff;
+  return GRAMMAR_CARDS
+    .filter(c => cat  === 'all' || c.topic === cat)
+    .filter(c => diff === 'all' || c.diff  === diff)
     .sort(() => Math.random() - 0.5);
 }
 
@@ -964,7 +976,7 @@ function loadGrammarCard() {
   // Render sentence (replace ___ with styled blank)
   const sentenceHtml = card.sentence.replace('___', '<span class="grammar-blank">___</span>');
   document.getElementById('grammarSentence').innerHTML = sentenceHtml;
-  document.getElementById('grammarTopic').textContent  = card.topic;
+  document.getElementById('grammarTopic').textContent  = `${card.topic} · ${card.diff}`;
   document.getElementById('grammarTranslation').style.opacity = '0';
   document.getElementById('grammarTranslation').textContent   = card.translation;
 
@@ -1187,7 +1199,8 @@ function selectPill(btn) {
   if (g === 'mode')     selectedMode     = btn.dataset.val;
   if (g === 'cat')      selectedCat      = btn.dataset.val;
   if (g === 'diff')     selectedDiff     = btn.dataset.val;
-  if (g === 'gcat')     selectedGrammarCat = btn.dataset.val;
+  if (g === 'gcat')     selectedGrammarCat  = btn.dataset.val;
+  if (g === 'gdiff')    selectedGrammarDiff = btn.dataset.val;
   if (g === 'gamemode') {
     selectedGameMode = btn.dataset.val;
     const isGrammar = selectedGameMode === 'grammar';
@@ -1229,6 +1242,13 @@ function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
 // ── Grammar game start ─────────────────────────────────────────────────────
 function startGrammarGame() {
+  // Check if deck has any cards for the selected filters
+  const preview = getGrammarDeck();
+  if (preview.length === 0) {
+    showMsg('No grammar cards for this topic + difficulty yet.');
+    return;
+  }
+
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('doneScreen').style.display  = 'none';
   document.getElementById('gameScreen').style.display  = '';
@@ -1245,7 +1265,7 @@ function startGrammarGame() {
   document.getElementById('scoreRow').style.display    = 'none';
   document.getElementById('kbHint').style.display      = 'none';
 
-  grammarDeck = getGrammarDeck();
+  grammarDeck = preview;
   grammarIdx  = 0;
   loadGrammarCard();
 }
