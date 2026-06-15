@@ -408,6 +408,20 @@
     font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
   }
   .btn-menu:active { opacity: 0.8; }
+
+  .btn-home {
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.07);
+    color: var(--tg-theme-text-color, #eee);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .btn-home:active { opacity: 0.7; }
   /* ── Grammar mode ── */
   .gamemode-row { margin-bottom: 18px; }
 
@@ -559,7 +573,7 @@
 <!-- ── GAME SCREEN ── -->
 <div class="screen" id="gameScreen" style="display:none">
   <div class="header-row">
-    <h1>🇩🇪 German Articles</h1>
+    <button class="btn-home" onclick="goMenu()">← Home</button>
     <div class="header-badges">
       <div class="goal-badge"   id="goalBadgeGame"></div>
       <div class="streak-badge" id="streakBadgeGame" style="display:none"></div>
@@ -618,7 +632,7 @@
 <!-- ── DONE SCREEN ── -->
 <div class="screen" id="doneScreen" style="display:none">
   <div class="done-emoji" id="doneEmoji"></div>
-  <div class="done-title">Round complete!</div>
+  <div class="done-title" id="doneTitle">Round complete!</div>
   <div class="done-score" id="doneScore"></div>
   <div class="done-sub"   id="doneSub"></div>
 
@@ -1468,7 +1482,9 @@ async function showDone() {
     ? '🎯 Daily goal reached!'
     : `${dailyAnsweredToday}/${dailyGoal} correct today`;
 
-  document.getElementById('doneEmoji').textContent = pct >= 80 ? '🏆' : pct >= 50 ? '💪' : '📚';
+  const allCorrect = wrong === 0;
+  document.getElementById('doneTitle').textContent  = allCorrect ? 'All complete! 🎊' : 'Round complete!';
+  document.getElementById('doneEmoji').textContent  = allCorrect ? '🎉' : pct >= 80 ? '🏆' : pct >= 50 ? '💪' : '📚';
   document.getElementById('doneScore').textContent = correct + '/' + total;
   document.getElementById('doneSub').textContent   = pct + '% correct · ' + goalTxt;
   document.getElementById('doneScreen').style.display = '';
