@@ -8,7 +8,7 @@ A **Telegram Mini App** for learning German articles (der/die/das) and grammar (
 
 - **Frontend (Mini App):** `index.html` → hosted on GitHub Pages → https://jugglingballsbot.github.io/german-flashcards/
 - **Backend API:** `backend/server.js` (Express + better-sqlite3) → port 3456 → proxied to `https://46.225.99.97.nip.io`
-- **Bot:** `backend/bot.js` (node-telegram-bot-api) → pm2 process `flashcards-bot`
+- **Bot:** `backend/bot.js` → separate pm2 process `flashcards-bot`
 - **Telegram entry point:** `t.me/JugglingBallsBot/German` (BotFather Mini App)
 
 ## Server Layout
@@ -38,34 +38,29 @@ All work lives on this VPS (Hetzner, Ubuntu).
 
 Check with:
 ```bash
-# API (started manually, not via pm2 — TODO: move to systemd)
-ps aux | grep "node server.js" | grep -v grep
+# API (systemd-owned; do not also run node server.js manually)
+systemctl status german-flashcards-api.service --no-pager -l
 curl -s http://127.0.0.1:3456/api/health   # should return {"ok":true,...}
 curl -s https://46.225.99.97.nip.io/api/health   # public via nginx
 
-# Bot (pm2)
+# Bot (separate pm2 process)
 pm2 status flashcards-bot
 pm2 logs flashcards-bot --lines 20 --nostream
 ```
 
 If API not running:
 ```bash
-cd /root/.openclaw/workspace/projects/german-flashcards/backend
-nohup node server.js > /tmp/flashcards-api.log 2>&1 &
+systemctl restart german-flashcards-api.service
 ```
 
 If bot crashed:
 ```bash
-pm2 restart flashcards-bot
+pm2 restart flashcards-bot --update-env
 ```
 
 ## Credentials
 
-`backend/.env` (already exists on server, NOT in git):
-```
-BOT_TOKEN=8268431270:AAGRX3GBjgVcYFqjiZY7jP6mmY34dMhVYK8
-MINI_APP_URL=https://jugglingballsbot.github.io/german-flashcards/
-```
+`backend/.env` already exists on server and is **not committed**. It contains the Telegram bot token and Mini App URL. Do not paste the token into chat/logs; read it from the environment file only when operating the service.
 
 The bot token is shared with **JugglingBallsBot** (the OpenClaw assistant bot). This is intentional — Antonio wants one bot to handle both AI assistance and Mini App launching.
 
@@ -73,8 +68,8 @@ The bot token is shared with **JugglingBallsBot** (the OpenClaw assistant bot). 
 
 ```
 Edit index.html → commit → push → GitHub Pages auto-deploys in ~30s
-Edit backend/server.js → restart node process manually
-Edit backend/bot.js → pm2 restart flashcards-bot
+Edit backend/server.js → systemctl restart german-flashcards-api.service
+Edit backend/bot.js → pm2 restart flashcards-bot --update-env
 ```
 
 GitHub remote: `https://github.com/jugglingballsbot/german-flashcards.git` (branch: `main`)
@@ -101,6 +96,7 @@ GitHub remote: `https://github.com/jugglingballsbot/german-flashcards.git` (bran
 - **Daily goal** (default 20) — both modes count toward it; saved per-user via API
 - **Streak** (consecutive days hitting goal) — stored in localStorage
 - **Spaced repetition** — wrong articles surface more often (`/api/weak-words/:userId`)
+- **Grammar result logging** — grammar answers are stored with `mode='grammar'`; `/api/weak-grammar/:userId` is available for future review UI
 - **Keyboard shortcuts** — `1/2/3` for articles, `1/2/3/4` for grammar
 - **Haptic feedback** — `Telegram.WebApp.HapticFeedback.notificationOccurred`
 - **Audio feedback** — `playTone()` using Web Audio API
@@ -145,14 +141,15 @@ let selectedGrammarCat
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET    | `/api/health` | Health check |
-| POST   | `/api/card-result` | Log one card answer (article mode) |
+| POST   | `/api/card-result` | Log one card answer (article or grammar mode) |
 | POST   | `/api/session` | Log end-of-round summary |
 | GET    | `/api/stats/:userId` | All-time stats |
 | GET    | `/api/weak-words/:userId` | Words user struggles with |
+| GET    | `/api/weak-grammar/:userId` | Grammar prompts user struggles with |
 | GET    | `/api/daily/:userId` | Today's progress + goal |
 | POST   | `/api/daily/:userId` | Upsert today's progress + goal |
 
-**Note:** Grammar mode does NOT yet log per-card results to the API (only the daily counter). If you add session tracking for grammar, extend `/api/card-result` to accept a `mode` field or add a new endpoint.
+**Note:** Grammar mode logs per-card results with `mode='grammar'`. The backend has `/api/weak-grammar/:userId`; the frontend still needs a dedicated weak-grammar review filter if Antonio wants that surfaced in the UI.
 
 ### DB schema
 

@@ -693,7 +693,8 @@
     <div class="grammar-sentence" id="grammarSentence"></div>
     <div class="grammar-translation" id="grammarTranslation"></div>
     <div class="btn-grammar-opts" id="grammarOpts"></div>
-    <div class="grammar-key-hint">(1) (2) (3) (4) to answer</div>
+    <button class="btn-start" id="grammarNextBtn" style="display:none; margin-top:14px" onclick="nextGrammarCard()">Next →</button>
+    <div class="grammar-key-hint">(1) (2) (3) (4) to answer · Enter for next</div>
   </div>
 
   <div class="card-scene" id="cardScene">
@@ -1089,6 +1090,7 @@ function loadGrammarCard() {
   document.getElementById('grammarTopic').textContent  = `${card.topic} · ${card.diff}`;
   document.getElementById('grammarTranslation').style.opacity = '0';
   document.getElementById('grammarTranslation').textContent   = card.translation;
+  document.getElementById('grammarNextBtn').style.display = 'none';
 
   // Render options (shuffle)
   const opts = [...card.options].sort(() => Math.random() - 0.5);
@@ -1105,6 +1107,7 @@ function answerGrammar(btn, chosen, correct) {
   if (grammarAnswered) return;
   grammarAnswered = true;
 
+  const card = grammarDeck[grammarIdx];
   const isCorrect = chosen === correct;
   btn.classList.add(isCorrect ? 'correct' : 'wrong');
 
@@ -1124,7 +1127,7 @@ function answerGrammar(btn, chosen, correct) {
 
   // Fill in the blank with the correct answer
   document.getElementById('grammarSentence').innerHTML =
-    grammarDeck[grammarIdx].sentence.replace(
+    card.sentence.replace(
       '___', `<span class="grammar-blank" style="color:#4ade80">${correct}</span>`
     );
 
@@ -1132,6 +1135,16 @@ function answerGrammar(btn, chosen, correct) {
   grammarSessionCorrect += isCorrect ? 1 : 0;
   grammarSessionWrong   += isCorrect ? 0 : 1;
   updateGrammarCounter();
+
+  apiPost('/card-result', {
+    userId: USER_ID,
+    mode: 'grammar',
+    word: card.sentence,
+    article: correct,
+    chosen,
+    correct: isCorrect,
+    sessionId: currentSessionId
+  });
 
   // Track daily progress (only on correct)
   if (isCorrect) {
@@ -1142,10 +1155,13 @@ function answerGrammar(btn, chosen, correct) {
     apiPost(`/daily/${USER_ID}`, { answeredToday: dailyAnsweredToday, goal: dailyGoal });
   }
 
-  setTimeout(() => {
-    grammarIdx++;
-    loadGrammarCard();
-  }, 1600);
+  document.getElementById('grammarNextBtn').style.display = '';
+}
+
+function nextGrammarCard() {
+  if (!grammarAnswered) return;
+  grammarIdx++;
+  loadGrammarCard();
 }
 
 function updateGrammarCounter() {
@@ -1366,6 +1382,8 @@ function startGrammarGame() {
   // Reset session counters
   grammarSessionCorrect = 0;
   grammarSessionWrong   = 0;
+  sessionStart      = Date.now();
+  currentSessionId  = 'grammar-' + Math.random().toString(36).slice(2) + Date.now();
   updateGrammarCounter();
 
   // Show grammar card, hide article-specific elements
@@ -1912,6 +1930,9 @@ document.addEventListener('keydown', e => {
     if (n >= 1 && n <= 4) {
       const opts = document.querySelectorAll('.btn-grammar-opt');
       if (opts[n - 1] && !opts[n - 1].disabled) opts[n - 1].click();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      nextGrammarCard();
     }
     return;
   }

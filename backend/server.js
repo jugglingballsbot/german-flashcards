@@ -3,7 +3,6 @@ const cors = require('cors');
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
-const { startTelegramBot } = require('./bot');
 
 const app = express();
 const PORT = 3456;
@@ -59,6 +58,23 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_dp_userId  ON daily_progress(userId);
 `);
 
+const cardResultColumns = db.prepare('PRAGMA table_info(card_results)').all().map(c => c.name);
+if (!cardResultColumns.includes('mode')) {
+  db.exec("ALTER TABLE card_results ADD COLUMN mode TEXT NOT NULL DEFAULT 'articles'");
+}
+db.exec('CREATE INDEX IF NOT EXISTS idx_cr_mode ON card_results(mode)');
+
+function todayBerlin() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Berlin',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const byType = Object.fromEntries(parts.map(p => [p.type, p.value]));
+  return `${byType.year}-${byType.month}-${byType.day}`;
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -69,13 +85,15 @@ app.get('/api/health', (req, res) => {
 
 // ── Card result ───────────────────────────────────────────────────────────
 app.post('/api/card-result', (req, res) => {
-  const { userId = 'anonymous', word, article, chosen, correct, sessionId } = req.body;
+  const { userId = 'anonymous', word, article, chosen, correct, sessionId, mode = 'articles' } = req.body;
   if (!word || !article || !chosen || sessionId === undefined)
     return res.status(400).json({ error: 'Missing fields' });
+  if (!['articles', 'grammar'].includes(mode))
+    return res.status(400).json({ error: 'Invalid mode' });
   db.prepare(`
-    INSERT INTO card_results (userId, word, article, chosen, correct, sessionId)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(userId, word, article, chosen, correct ? 1 : 0, sessionId);
+    INSERT INTO card_results (userId, word, article, chosen, correct, sessionId, mode)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(userId, word, article, chosen, correct ? 1 : 0, sessionId, mode);
   res.json({ ok: true });
 });
 
@@ -106,7 +124,7 @@ app.get('/api/stats/:userId', (req, res) => {
   const weakWords = db.prepare(`
     SELECT word
     FROM card_results
-    WHERE userId = ?
+    WHERE userId = ? AND mode = 'articles'
     GROUP BY word
     HAVING SUM(1 - correct) > SUM(correct)
        OR  (SUM(correct) = 0 AND COUNT(*) > 0)
@@ -133,7 +151,7 @@ app.get('/api/weak-words/:userId', (req, res) => {
            SUM(correct)       AS rights,
            SUM(1 - correct)   AS wrongs,
            MAX(createdAt)     AS lastSeen
-    FROM card_results WHERE userId = ?
+    FROM card_results WHERE userId = ? AND mode = 'articles'
     GROUP BY word
     HAVING wrongs >= rights
     ORDER BY (wrongs - rights) DESC, lastSeen ASC
@@ -142,11 +160,29 @@ app.get('/api/weak-words/:userId', (req, res) => {
   res.json(rows.map(r => r.word));
 });
 
+app.get('/api/weak-grammar/:userId', (req, res) => {
+  const { userId } = req.params;
+  const rows = db.prepare(`
+    SELECT word,
+           article           AS answer,
+           SUM(correct)      AS rights,
+           SUM(1 - correct)  AS wrongs,
+           MAX(createdAt)    AS lastSeen
+    FROM card_results
+    WHERE userId = ? AND mode = 'grammar'
+    GROUP BY word, article
+    HAVING wrongs >= rights
+    ORDER BY (wrongs - rights) DESC, lastSeen ASC
+    LIMIT 8
+  `).all(userId);
+  res.json(rows);
+});
+
 // ── Daily progress (GET) ──────────────────────────────────────────────────
 // Returns goal + today's answered count + resumable deck state
 app.get('/api/daily/:userId', (req, res) => {
   const { userId } = req.params;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayBerlin();
 
   const settings = db.prepare(
     'SELECT dailyGoal FROM user_settings WHERE userId = ?'
@@ -173,7 +209,7 @@ app.get('/api/daily/:userId', (req, res) => {
 // Body: { answeredToday, deckWords?, deckCurrentIdx?, deckFilters?, goal? }
 app.post('/api/daily/:userId', (req, res) => {
   const { userId } = req.params;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayBerlin();
   const { answeredToday, deckWords, deckCurrentIdx, deckFilters, goal } = req.body;
 
   if (Number.isInteger(goal) && goal >= 1) {
@@ -210,10 +246,4 @@ app.post('/api/daily/:userId', (req, res) => {
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`German flashcards API running on port ${PORT}`);
   console.log(`DB: ${DB_PATH}`);
-});
-
-startTelegramBot({
-  token: process.env.TELEGRAM_BOT_TOKEN,
-  miniAppUrl: process.env.MINI_APP_URL,
-  pin: process.env.PIN_LEADERBOARD_MESSAGE,
 });

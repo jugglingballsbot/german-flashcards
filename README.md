@@ -19,6 +19,8 @@ A Telegram Mini App for learning German articles (der / die / das) and grammar (
 - A sentence is shown with a `___` blank
 - Pick the correct word from 4 options (or press **1–4** on keyboard)
 - Correct answer fills in the blank (green), translation shown below
+- Per-card grammar answers are logged for future weak-grammar review
+- A deliberate **Next** step gives you time to read the correction
 - Live session counter (✅ / ❌) in the header
 - Haptic + audio feedback on each answer
 - Correct answers count toward your **daily goal**
@@ -63,6 +65,7 @@ Telegram Mini App (GitHub Pages)
         │ POST /api/card-result
         │ POST /api/session
         │ GET  /api/weak-words/:id
+        │ GET  /api/weak-grammar/:id
         │ GET  /api/daily/:id
         │ POST /api/daily/:id
         ▼
@@ -108,7 +111,7 @@ german-flashcards/
 ### `POST /api/card-result`
 Record a single card answer.
 ```json
-{ "userId":"283951220","word":"Hund","article":"der","chosen":"die","correct":false,"sessionId":"uuid" }
+{ "userId":"283951220","mode":"articles","word":"Hund","article":"der","chosen":"die","correct":false,"sessionId":"uuid" }
 ```
 
 ### `POST /api/session`
@@ -122,6 +125,9 @@ Returns all-time progress summary.
 
 ### `GET /api/weak-words/:userId`
 Returns words the user struggles with (wrong > correct).
+
+### `GET /api/weak-grammar/:userId`
+Returns grammar prompts the user struggles with (wrong >= correct).
 
 ### `GET /api/daily/:userId`
 Returns today's progress + daily goal + resumable deck state.
@@ -141,8 +147,8 @@ cd /root/.openclaw/workspace/projects/german-flashcards/backend
 npm install
 # Start API (direct)
 node server.js
-# Start bot via pm2
-pm2 start bot.js --name flashcards-bot
+# Start bot separately via pm2
+pm2 start bot.js --name flashcards-bot --update-env
 pm2 save
 ```
 
@@ -184,11 +190,24 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 - [ ] A2/B1 grammar cards
 - [ ] Translation mode (German → English multiple choice)
 - [ ] Weekly progress report from bot
+- [x] Grammar per-card tracking
+- [x] Card-data validation tests
+- [x] Separate API and bot entrypoints
+- [ ] Grammar weak-card review mode
 - [ ] Grammar mode session summary screen
 
 ---
 
 ## Changelog
+
+### 2026-06-15
+- Split API and Telegram bot entrypoints so `server.js` no longer starts Telegram polling as a side effect
+- Added `npm run bot` for the bot process
+- Added grammar per-card logging through `/api/card-result` with `mode: "grammar"`
+- Added `/api/weak-grammar/:userId` as a backend hook for future grammar SRS/review mode
+- Changed daily progress date calculation to Europe/Berlin instead of UTC
+- Changed grammar practice flow from auto-advance to answer → read correction → **Next**
+- Added backend tests for architecture split and flashcard data validation
 
 ### 2026-06-14
 - Added Grammar mode (fill-in-the-blank, 40 cards)
