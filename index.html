@@ -1708,12 +1708,13 @@ function loadCard() {
   document.getElementById('cardTotal').textContent        = deck.length;
   document.getElementById('frontWord').textContent        = c.word;
   document.getElementById('frontTranslation').textContent = c.en;
-  document.getElementById('backArticle').textContent      = c.article;
-  document.getElementById('backFull').textContent         = c.article + ' ' + c.word;
-  document.getElementById('backBadge').innerHTML          =
-    `<span class="article-badge ${c.article}">${c.article} · ${c.en}</span>`;
   document.getElementById('diffBadge').textContent        = c.diff || '';
   document.getElementById('repeatBadge').style.display   = c._retry ? '' : 'none';
+
+  // Clear back face so the answer isn’t visible during the flip-back animation
+  document.getElementById('backArticle').textContent = '';
+  document.getElementById('backFull').textContent    = '';
+  document.getElementById('backBadge').innerHTML     = '';
 
   document.getElementById('card').classList.remove('flipped');
   document.querySelectorAll('.btn-article').forEach(b => {
@@ -1722,6 +1723,14 @@ function loadCard() {
   });
   document.getElementById('progressFill').style.width =
     (idx / deck.length * 100) + '%';
+
+  // Populate back after the flip animation completes (CSS transition = 0.48s)
+  setTimeout(() => {
+    document.getElementById('backArticle').textContent = c.article;
+    document.getElementById('backFull').textContent    = c.article + ' ' + c.word;
+    document.getElementById('backBadge').innerHTML     =
+      `<span class="article-badge ${c.article}">${c.article} · ${c.en}</span>`;
+  }, 500);
 }
 
 // ── Flip ───────────────────────────────────────────────────────────────────
