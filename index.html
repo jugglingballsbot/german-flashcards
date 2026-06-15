@@ -639,6 +639,7 @@
       <button class="pill"        data-group="gcat" data-val="prepositions" onclick="selectPill(this)">Prepositions 📍</button>
       <button class="pill"        data-group="gcat" data-val="modals"       onclick="selectPill(this)">Modals ⚙️</button>
       <button class="pill"        data-group="gcat" data-val="verbs"        onclick="selectPill(this)">Verbs 🔄</button>
+      <button class="pill"        data-group="gcat" data-val="conjugations" onclick="selectPill(this)">Conjugations 🔤</button>
     </div>
 
     <div class="section-label">Difficulty</div>
@@ -1051,6 +1052,182 @@ const GRAMMAR_CARDS = [
   { sentence:'Ich ___ müde.',                              answer:'bin',     options:['bin','habe','ist','hat'],      topic:'verbs', diff:'A1', translation:'I am tired.' },
 ];
 
+// ── Verb conjugation data ────────────────────────────────────────────────────
+const VERB_CONJ = [
+  { verb:'arbeiten',       en:'to work',                      diff:'A1', forms:{'ich':'arbeite','wir':'arbeiten','du':'arbeitest','ihr':'arbeitet','er/sie/es':'arbeitet','sie/Sie':'arbeiten'},         ex:{de:'Ich arbeite heute im Büro.',en:'I am working in the office today.'} },
+  { verb:'duschen',        en:'to take a shower',             diff:'A1', forms:{'ich':'dusche','wir':'duschen','du':'duschst','ihr':'duscht','er/sie/es':'duscht','sie/Sie':'duschen'},               ex:{de:'Duscht ihr jeden Tag?',en:'Do you shower every day?'} },
+  { verb:'tanzen',         en:'to dance',                     diff:'A1', forms:{'ich':'tanze','wir':'tanzen','du':'tanzt','ihr':'tanzt','er/sie/es':'tanzt','sie/Sie':'tanzen'},                     ex:{de:'Ich tanze jeden Morgen im Wohnzimmer.',en:'I dance every morning in the living room.'} },
+  { verb:'suchen',         en:'to search, to look for',       diff:'A1', forms:{'ich':'suche','wir':'suchen','du':'suchst','ihr':'sucht','er/sie/es':'sucht','sie/Sie':'suchen'},                 ex:{de:'Ich suche meinen Schlüssel.',en:'I am looking for my key.'} },
+  { verb:'studieren',      en:'to study',                     diff:'A1', forms:{'ich':'studiere','wir':'studieren','du':'studierst','ihr':'studiert','er/sie/es':'studiert','sie/Sie':'studieren'},   ex:{de:'Ich studiere Deutsch an der Universität.',en:'I study German at the university.'} },
+  { verb:'besuchen',       en:'to visit',                     diff:'A1', forms:{'ich':'besuche','wir':'besuchen','du':'besuchst','ihr':'besucht','er/sie/es':'besucht','sie/Sie':'besuchen'},         ex:{de:'Ich besuche meine Oma.',en:'I visit my grandma.'} },
+  { verb:'baden',          en:'to bathe',                     diff:'A1', forms:{'ich':'bade','wir':'baden','du':'badest','ihr':'badet','er/sie/es':'badet','sie/Sie':'baden'},                     ex:{de:'Ich bade jeden Morgen.',en:'I bathe every morning.'} },
+  { verb:'anziehen',       en:'to put on clothes',            diff:'A1', forms:{'ich':'ziehe an','wir':'ziehen an','du':'ziehst an','ihr':'zieht an','er/sie/es':'zieht an','sie/Sie':'ziehen an'},   ex:{de:'Ich ziehe eine Jacke an.',en:'I put on a jacket.'} },
+  { verb:'fahren',         en:'to drive, to go',              diff:'A1', forms:{'ich':'fahre','wir':'fahren','du':'fährst','ihr':'fahrt','er/sie/es':'fährt','sie/Sie':'fahren'},               ex:{de:'Ich fahre jeden Tag zur Arbeit.',en:'I drive to work every day.'} },
+  { verb:'erzählen',       en:'to tell, to narrate',          diff:'A1', forms:{'ich':'erzähle','wir':'erzählen','du':'erzählst','ihr':'erzählt','er/sie/es':'erzählt','sie/Sie':'erzählen'}, ex:{de:'Ich erzähle eine kurze Geschichte.',en:'I tell a short story.'} },
+  { verb:'erklären',       en:'to explain',                   diff:'A1', forms:{'ich':'erkläre','wir':'erklären','du':'erklärst','ihr':'erklärt','er/sie/es':'erklärt','sie/Sie':'erklären'}, ex:{de:'Ich erkläre die Aufgabe.',en:'I explain the task.'} },
+  { verb:'lachen',         en:'to laugh',                     diff:'A1', forms:{'ich':'lache','wir':'lachen','du':'lachst','ihr':'lacht','er/sie/es':'lacht','sie/Sie':'lachen'},                 ex:{de:'Er lacht nicht heute.',en:'He does not laugh today.'} },
+  { verb:'stellen',        en:'to place, to put',             diff:'A1', forms:{'ich':'stelle','wir':'stellen','du':'stellst','ihr':'stellt','er/sie/es':'stellt','sie/Sie':'stellen'},             ex:{de:'Ich stelle den Stuhl an die Wand.',en:'I put the chair against the wall.'} },
+  { verb:'stehen',         en:'to stand',                     diff:'A1', forms:{'ich':'stehe','wir':'stehen','du':'stehst','ihr':'steht','er/sie/es':'steht','sie/Sie':'stehen'},                 ex:{de:'Ich stehe jeden Morgen um sieben Uhr auf.',en:'I get up every morning at seven.'} },
+  { verb:'sprechen',       en:'to speak',                     diff:'A1', forms:{'ich':'spreche','wir':'sprechen','du':'sprichst','ihr':'sprecht','er/sie/es':'spricht','sie/Sie':'sprechen'},       ex:{de:'Ich spreche Deutsch.',en:'I speak German.'} },
+  { verb:'spielen',        en:'to play',                      diff:'A1', forms:{'ich':'spiele','wir':'spielen','du':'spielst','ihr':'spielt','er/sie/es':'spielt','sie/Sie':'spielen'},             ex:{de:'Ich spiele jeden Abend Fußball.',en:'I play soccer every evening.'} },
+  { verb:'holen',          en:'to fetch, get',                diff:'A1', forms:{'ich':'hole','wir':'holen','du':'holst','ihr':'holt','er/sie/es':'holt','sie/Sie':'holen'},                     ex:{de:'Ich hole ein Glas Wasser.',en:'I get a glass of water.'} },
+  { verb:'gratulieren',    en:'to congratulate',              diff:'A1', forms:{'ich':'gratuliere','wir':'gratulieren','du':'gratulierst','ihr':'gratuliert','er/sie/es':'gratuliert','sie/Sie':'gratulieren'}, ex:{de:'Ich gratuliere dir zum Geburtstag.',en:'I congratulate you on your birthday.'} },
+  { verb:'aufhören',       en:'to stop',                      diff:'A1', forms:{'ich':'höre auf','wir':'hören auf','du':'hörst auf','ihr':'hört auf','er/sie/es':'hört auf','sie/Sie':'hören auf'}, ex:{de:'Ich höre jetzt auf.',en:'I am stopping now.'} },
+  { verb:'gehören',        en:'to belong',                    diff:'A1', forms:{'ich':'gehöre','wir':'gehören','du':'gehörst','ihr':'gehört','er/sie/es':'gehört','sie/Sie':'gehören'},     ex:{de:'Das Buch gehört mir.',en:'The book belongs to me.'} },
+  { verb:'auf sein',       en:'to be open',                   diff:'A1', forms:{'ich':'bin auf','wir':'sind auf','du':'bist auf','ihr':'seid auf','er/sie/es':'ist auf','sie/Sie':'sind auf'},     ex:{de:'Das Fenster ist auf.',en:'The window is open.'} },
+  { verb:'gehen',          en:'to go',                        diff:'A1', forms:{'ich':'gehe','wir':'gehen','du':'gehst','ihr':'geht','er/sie/es':'geht','sie/Sie':'gehen'},                     ex:{de:'Ich gehe jeden Morgen zur Schule.',en:'I go to school every morning.'} },
+  { verb:'aufstehen',      en:'to get up',                    diff:'A1', forms:{'ich':'stehe auf','wir':'stehen auf','du':'stehst auf','ihr':'steht auf','er/sie/es':'steht auf','sie/Sie':'stehen auf'}, ex:{de:'Ich stehe jeden Morgen um sieben Uhr auf.',en:'I get up every morning at seven.'} },
+  { verb:'ausmachen',      en:'to turn off',                  diff:'A1', forms:{'ich':'mache aus','wir':'machen aus','du':'machst aus','ihr':'macht aus','er/sie/es':'macht aus','sie/Sie':'machen aus'}, ex:{de:'Ich mache das Licht aus.',en:'I turn off the light.'} },
+  { verb:'aus sein',       en:'to be off',                    diff:'A1', forms:{'ich':'bin aus','wir':'sind aus','du':'bist aus','ihr':'seid aus','er/sie/es':'ist aus','sie/Sie':'sind aus'},     ex:{de:'Sind die Lampen aus?',en:'Are the lamps off?'} },
+  { verb:'bedeuten',       en:'to mean',                      diff:'A1', forms:{'ich':'bedeute','wir':'bedeuten','du':'bedeutest','ihr':'bedeutet','er/sie/es':'bedeutet','sie/Sie':'bedeuten'},     ex:{de:'Was bedeutet dieses Wort?',en:'What does this word mean?'} },
+  { verb:'beginnen',       en:'to begin',                     diff:'A1', forms:{'ich':'beginne','wir':'beginnen','du':'beginnst','ihr':'beginnt','er/sie/es':'beginnt','sie/Sie':'beginnen'},         ex:{de:'Ich beginne jetzt die Arbeit.',en:'I begin the work now.'} },
+  { verb:'bekommen',       en:'to get, to receive',           diff:'A1', forms:{'ich':'bekomme','wir':'bekommen','du':'bekommst','ihr':'bekommt','er/sie/es':'bekommt','sie/Sie':'bekommen'},         ex:{de:'Bekommt ihr auch das Geschenk?',en:'Are you also getting the gift?'} },
+  { verb:'bezahlen',       en:'to pay',                       diff:'A1', forms:{'ich':'bezahle','wir':'bezahlen','du':'bezahlst','ihr':'bezahlt','er/sie/es':'bezahlt','sie/Sie':'bezahlen'},         ex:{de:'Ich bezahle den Kaffee.',en:'I pay for the coffee.'} },
+  { verb:'bitten',         en:'to request, to ask for',       diff:'A1', forms:{'ich':'bitte','wir':'bitten','du':'bittest','ihr':'bittet','er/sie/es':'bittet','sie/Sie':'bitten'},               ex:{de:'Ich bitte dich um Hilfe.',en:'I ask you for help.'} },
+  { verb:'bleiben',        en:'to stay',                      diff:'A1', forms:{'ich':'bleibe','wir':'bleiben','du':'bleibst','ihr':'bleibt','er/sie/es':'bleibt','sie/Sie':'bleiben'},             ex:{de:'Ich bleibe heute zu Hause.',en:'I am staying at home today.'} },
+  { verb:'brauchen',       en:'to need',                      diff:'A1', forms:{'ich':'brauche','wir':'brauchen','du':'brauchst','ihr':'braucht','er/sie/es':'braucht','sie/Sie':'brauchen'},         ex:{de:'Ich brauche Wasser.',en:'I need water.'} },
+  { verb:'bringen',        en:'to bring',                     diff:'A1', forms:{'ich':'bringe','wir':'bringen','du':'bringst','ihr':'bringt','er/sie/es':'bringt','sie/Sie':'bringen'},             ex:{de:'Ich bringe das Buch zur Schule.',en:'I bring the book to school.'} },
+  { verb:'geben',          en:'to give',                      diff:'A1', forms:{'ich':'gebe','wir':'geben','du':'gibst','ihr':'gebt','er/sie/es':'gibt','sie/Sie':'geben'},                     ex:{de:'Ich gebe dir das Buch.',en:'I give you the book.'} },
+  { verb:'bestellen',      en:'to order',                     diff:'A1', forms:{'ich':'bestelle','wir':'bestellen','du':'bestellst','ihr':'bestellt','er/sie/es':'bestellt','sie/Sie':'bestellen'},   ex:{de:'Ich bestelle eine Pizza.',en:'I order a pizza.'} },
+  { verb:'sollen',         en:'should, to be supposed to',    diff:'A1', forms:{'ich':'soll','wir':'sollen','du':'sollst','ihr':'sollt','er/sie/es':'soll','sie/Sie':'sollen'},                 ex:{de:'Ich soll heute früh schlafen gehen.',en:'I should go to sleep early today.'} },
+  { verb:'wandern',        en:'to hike',                      diff:'A1', forms:{'ich':'wandere','wir':'wandern','du':'wanderst','ihr':'wandert','er/sie/es':'wandert','sie/Sie':'wandern'},         ex:{de:'Ich wandere jeden Sonntag im Park.',en:'I hike in the park every Sunday.'} },
+  { verb:'sitzen',         en:'to sit',                       diff:'A1', forms:{'ich':'sitze','wir':'sitzen','du':'sitzt','ihr':'sitzt','er/sie/es':'sitzt','sie/Sie':'sitzen'},                 ex:{de:'Sitzt du hier?',en:'Are you sitting here?'} },
+  { verb:'sein',           en:'to be',                        diff:'A1', forms:{'ich':'bin','wir':'sind','du':'bist','ihr':'seid','er/sie/es':'ist','sie/Sie':'sind'},                         ex:{de:'Ich bin müde.',en:'I am tired.'} },
+  { verb:'lesen',          en:'to read',                      diff:'A1', forms:{'ich':'lese','wir':'lesen','du':'liest','ihr':'lest','er/sie/es':'liest','sie/Sie':'lesen'},                     ex:{de:'Ich lese jeden Morgen die Zeitung.',en:'I read the newspaper every morning.'} },
+  { verb:'lieben',         en:'to love',                      diff:'A1', forms:{'ich':'liebe','wir':'lieben','du':'liebst','ihr':'liebt','er/sie/es':'liebt','sie/Sie':'lieben'},               ex:{de:'Ich liebe Kaffee am Morgen.',en:'I love coffee in the morning.'} },
+  { verb:'zahlen',         en:'to pay',                       diff:'A1', forms:{'ich':'zahle','wir':'zahlen','du':'zahlst','ihr':'zahlt','er/sie/es':'zahlt','sie/Sie':'zahlen'},                 ex:{de:'Ich zahle die Rechnung.',en:'I pay the bill.'} },
+  { verb:'aussehen',       en:'to look, to appear',           diff:'A1', forms:{'ich':'sehe aus','wir':'sehen aus','du':'siehst aus','ihr':'seht aus','er/sie/es':'sieht aus','sie/Sie':'sehen aus'}, ex:{de:'Du siehst heute sehr müde aus.',en:'You look very tired today.'} },
+  { verb:'sehen',          en:'to see',                       diff:'A1', forms:{'ich':'sehe','wir':'sehen','du':'siehst','ihr':'seht','er/sie/es':'sieht','sie/Sie':'sehen'},                 ex:{de:'Ich sehe den Hund im Garten.',en:'I see the dog in the garden.'} },
+  { verb:'aussteigen',     en:'to get off',                   diff:'A1', forms:{'ich':'steige aus','wir':'steigen aus','du':'steigst aus','ihr':'steigt aus','er/sie/es':'steigt aus','sie/Sie':'steigen aus'}, ex:{de:'Ich steige an der Haltestelle aus.',en:'I get off at the stop.'} },
+  { verb:'schwimmen',      en:'to swim',                      diff:'A1', forms:{'ich':'schwimme','wir':'schwimmen','du':'schwimmst','ihr':'schwimmt','er/sie/es':'schwimmt','sie/Sie':'schwimmen'},   ex:{de:'Ich schwimme jeden Morgen im Schwimmbad.',en:'I swim every morning in the pool.'} },
+  { verb:'schmecken',      en:'to taste',                     diff:'A1', forms:{'ich':'schmecke','wir':'schmecken','du':'schmeckst','ihr':'schmeckt','er/sie/es':'schmeckt','sie/Sie':'schmecken'},   ex:{de:'Der Apfel schmeckt gut.',en:'The apple tastes good.'} },
+  { verb:'wollen',         en:'to want',                      diff:'A1', forms:{'ich':'will','wir':'wollen','du':'willst','ihr':'wollt','er/sie/es':'will','sie/Sie':'wollen'},                 ex:{de:'Ich will heute Kaffee trinken.',en:'I want to drink coffee today.'} },
+  { verb:'wohnen',         en:'to live, to reside',           diff:'A1', forms:{'ich':'wohne','wir':'wohnen','du':'wohnst','ihr':'wohnt','er/sie/es':'wohnt','sie/Sie':'wohnen'},               ex:{de:'Ich wohne in Berlin.',en:'I live in Berlin.'} },
+  { verb:'wissen',         en:'to know a fact',               diff:'A1', forms:{'ich':'weiß','wir':'wissen','du':'weißt','ihr':'wisst','er/sie/es':'weiß','sie/Sie':'wissen'},                 ex:{de:'Ich weiß die Antwort.',en:'I know the answer.'} },
+  { verb:'wiederholen',    en:'to repeat',                    diff:'A1', forms:{'ich':'wiederhole','wir':'wiederholen','du':'wiederholst','ihr':'wiederholt','er/sie/es':'wiederholt','sie/Sie':'wiederholen'}, ex:{de:'Ich wiederhole den Satz.',en:'I repeat the sentence.'} },
+  { verb:'schließen',       en:'to close',                     diff:'A1', forms:{'ich':'schließe','wir':'schließen','du':'schließt','ihr':'schließt','er/sie/es':'schließt','sie/Sie':'schließen'}, ex:{de:'Ich schließe die Tür.',en:'I close the door.'} },
+  { verb:'riechen',        en:'to smell',                     diff:'A1', forms:{'ich':'rieche','wir':'riechen','du':'riechst','ihr':'riecht','er/sie/es':'riecht','sie/Sie':'riechen'},             ex:{de:'Ich rieche die frischen Blumen.',en:'I smell the fresh flowers.'} },
+  { verb:'buchstabieren',  en:'to spell',                     diff:'A1', forms:{'ich':'buchstabiere','wir':'buchstabieren','du':'buchstabierst','ihr':'buchstabiert','er/sie/es':'buchstabiert','sie/Sie':'buchstabieren'}, ex:{de:'Kannst du deinen Namen buchstabieren?',en:'Can you spell your name?'} },
+  { verb:'danken',         en:'to thank',                     diff:'A1', forms:{'ich':'danke','wir':'danken','du':'dankst','ihr':'dankt','er/sie/es':'dankt','sie/Sie':'danken'},                 ex:{de:'Ich danke dir.',en:'I thank you.'} },
+  { verb:'dauern',         en:'to last, to take time',        diff:'A1', forms:{'ich':'dauere','wir':'dauern','du':'dauerst','ihr':'dauert','er/sie/es':'dauert','sie/Sie':'dauern'},             ex:{de:'Der Film dauert zwei Stunden.',en:'The movie lasts two hours.'} },
+  { verb:'drucken',        en:'to print',                     diff:'A1', forms:{'ich':'drucke','wir':'drucken','du':'druckst','ihr':'druckt','er/sie/es':'druckt','sie/Sie':'drucken'},             ex:{de:'Ich drucke das Dokument.',en:'I print the document.'} },
+  { verb:'drücken',        en:'to press, to push',            diff:'A1', forms:{'ich':'drücke','wir':'drücken','du':'drückst','ihr':'drückt','er/sie/es':'drückt','sie/Sie':'drücken'},     ex:{de:'Ich drücke den Knopf.',en:'I press the button.'} },
+  { verb:'dürfen',         en:'may, to be allowed to',        diff:'A1', forms:{'ich':'darf','wir':'dürfen','du':'darfst','ihr':'dürft','er/sie/es':'darf','sie/Sie':'dürfen'},               ex:{de:'Ich darf heute länger schlafen.',en:'I may sleep longer today.'} },
+  { verb:'einkaufen',      en:'to shop',                      diff:'A1', forms:{'ich':'kaufe ein','wir':'kaufen ein','du':'kaufst ein','ihr':'kauft ein','er/sie/es':'kauft ein','sie/Sie':'kaufen ein'}, ex:{de:'Ich kaufe jeden Tag Brot ein.',en:'I buy bread every day.'} },
+  { verb:'einladen',       en:'to invite',                    diff:'A1', forms:{'ich':'lade ein','wir':'laden ein','du':'lädst ein','ihr':'ladet ein','er/sie/es':'lädt ein','sie/Sie':'laden ein'},   ex:{de:'Ich lade meinen Freund zum Essen ein.',en:'I invite my friend to eat.'} },
+  { verb:'einsteigen',     en:'to get in, to board',          diff:'A1', forms:{'ich':'steige ein','wir':'steigen ein','du':'steigst ein','ihr':'steigt ein','er/sie/es':'steigt ein','sie/Sie':'steigen ein'}, ex:{de:'Ich steige in den Bus ein.',en:'I get on the bus.'} },
+  { verb:'empfehlen',      en:'to recommend',                 diff:'A1', forms:{'ich':'empfehle','wir':'empfehlen','du':'empfiehlst','ihr':'empfehlt','er/sie/es':'empfiehlt','sie/Sie':'empfehlen'},   ex:{de:'Ich empfehle das Buch.',en:'I recommend the book.'} },
+  { verb:'erlauben',       en:'to allow',                     diff:'A1', forms:{'ich':'erlaube','wir':'erlauben','du':'erlaubst','ihr':'erlaubt','er/sie/es':'erlaubt','sie/Sie':'erlauben'},         ex:{de:'Ich erlaube dir das Spiel.',en:'I allow you the game.'} },
+  { verb:'glauben',        en:'to believe',                   diff:'A1', forms:{'ich':'glaube','wir':'glauben','du':'glaubst','ihr':'glaubt','er/sie/es':'glaubt','sie/Sie':'glauben'},             ex:{de:'Ich glaube dir.',en:'I believe you.'} },
+  { verb:'sagen',          en:'to say',                       diff:'A1', forms:{'ich':'sage','wir':'sagen','du':'sagst','ihr':'sagt','er/sie/es':'sagt','sie/Sie':'sagen'},                     ex:{de:'Ich sage die Wahrheit.',en:'I say the truth.'} },
+  { verb:'fernsehen',      en:'to watch TV',                  diff:'A1', forms:{'ich':'sehe fern','wir':'sehen fern','du':'siehst fern','ihr':'seht fern','er/sie/es':'sieht fern','sie/Sie':'sehen fern'}, ex:{de:'Ich sehe jeden Abend fern.',en:'I watch TV every evening.'} },
+  { verb:'finden',         en:'to find',                      diff:'A1', forms:{'ich':'finde','wir':'finden','du':'findest','ihr':'findet','er/sie/es':'findet','sie/Sie':'finden'},             ex:{de:'Ich finde meinen Schlüssel nicht.',en:'I cannot find my key.'} },
+  { verb:'fliegen',        en:'to fly',                       diff:'A1', forms:{'ich':'fliege','wir':'fliegen','du':'fliegst','ihr':'fliegt','er/sie/es':'fliegt','sie/Sie':'fliegen'},             ex:{de:'Ich fliege morgen nach Berlin.',en:'I am flying to Berlin tomorrow.'} },
+  { verb:'abfliegen',      en:'to take off by plane',         diff:'A1', forms:{'ich':'fliege ab','wir':'fliegen ab','du':'fliegst ab','ihr':'fliegt ab','er/sie/es':'fliegt ab','sie/Sie':'fliegen ab'}, ex:{de:'Der Flieger fliegt um 9 Uhr ab.',en:'The airplane takes off at 9 o\'clock.'} },
+  { verb:'reparieren',     en:'to repair',                    diff:'A1', forms:{'ich':'repariere','wir':'reparieren','du':'reparierst','ihr':'repariert','er/sie/es':'repariert','sie/Sie':'reparieren'},   ex:{de:'Ich repariere den kaputten Stuhl.',en:'I repair the broken chair.'} },
+  { verb:'reisen',         en:'to travel',                    diff:'A1', forms:{'ich':'reise','wir':'reisen','du':'reist','ihr':'reist','er/sie/es':'reist','sie/Sie':'reisen'},                 ex:{de:'Ich reise oft nach Berlin.',en:'I travel to Berlin often.'} },
+  { verb:'regnen',         en:'to rain',                      diff:'A1', forms:{'ich':'regne','wir':'regnen','du':'regnest','ihr':'regnet','er/sie/es':'regnet','sie/Sie':'regnen'},             ex:{de:'Heute regnet es stark.',en:'Today it is raining heavily.'} },
+  { verb:'rauchen',        en:'to smoke',                     diff:'A1', forms:{'ich':'rauche','wir':'rauchen','du':'rauchst','ihr':'raucht','er/sie/es':'raucht','sie/Sie':'rauchen'},             ex:{de:'Ich rauche nicht.',en:'I do not smoke.'} },
+  { verb:'an sein',        en:'to be on',                     diff:'A1', forms:{'ich':'bin an','wir':'sind an','du':'bist an','ihr':'seid an','er/sie/es':'ist an','sie/Sie':'sind an'},         ex:{de:'Das Licht ist an.',en:'The light is on.'} },
+  { verb:'Rad fahren',     en:'to ride a bicycle',            diff:'A1', forms:{'ich':'fahre Rad','wir':'fahren Rad','du':'fährst Rad','ihr':'fahrt Rad','er/sie/es':'fährt Rad','sie/Sie':'fahren Rad'}, ex:{de:'Ich fahre jeden Morgen Rad.',en:'I ride my bike every morning.'} },
+  { verb:'öffnen',          en:'to open',                      diff:'A1', forms:{'ich':'öffne','wir':'öffnen','du':'öffnest','ihr':'öffnet','er/sie/es':'öffnet','sie/Sie':'öffnen'},               ex:{de:'Ich öffne die Tür.',en:'I open the door.'} },
+  { verb:'werden',         en:'to become',                    diff:'A1', forms:{'ich':'werde','wir':'werden','du':'wirst','ihr':'werdet','er/sie/es':'wird','sie/Sie':'werden'},               ex:{de:'Ich werde müde.',en:'I am getting tired.'} },
+  { verb:'grillen',        en:'to grill',                     diff:'A1', forms:{'ich':'grille','wir':'grillen','du':'grillst','ihr':'grillt','er/sie/es':'grillt','sie/Sie':'grillen'},             ex:{de:'Ich grille heute Würstchen im Garten.',en:'I am grilling sausages in the garden today.'} },
+  { verb:'haben',          en:'to have',                      diff:'A1', forms:{'ich':'habe','wir':'haben','du':'hast','ihr':'habt','er/sie/es':'hat','sie/Sie':'haben'},                     ex:{de:'Ich habe einen Hund.',en:'I have a dog.'} },
+  { verb:'weh tun',        en:'to hurt',                      diff:'A1', forms:{'ich':'tue weh','wir':'tun weh','du':'tust weh','ihr':'tut weh','er/sie/es':'tut weh','sie/Sie':'tun weh'},     ex:{de:'Mein Kopf tut weh.',en:'My head hurts.'} },
+  { verb:'nehmen',         en:'to take',                      diff:'A1', forms:{'ich':'nehme','wir':'nehmen','du':'nimmst','ihr':'nehmt','er/sie/es':'nimmt','sie/Sie':'nehmen'},             ex:{de:'Ich nehme einen Apfel.',en:'I take an apple.'} },
+  { verb:'müssen',         en:'must, to have to',             diff:'A1', forms:{'ich':'muss','wir':'müssen','du':'musst','ihr':'müsst','er/sie/es':'muss','sie/Sie':'müssen'},               ex:{de:'Ich muss heute früh aufstehen.',en:'I have to get up early today.'} },
+  { verb:'leben',          en:'to live',                      diff:'A1', forms:{'ich':'lebe','wir':'leben','du':'lebst','ihr':'lebt','er/sie/es':'lebt','sie/Sie':'leben'},                   ex:{de:'Ich lebe in Berlin.',en:'I live in Berlin.'} },
+  { verb:'legen',          en:'to lay, to put',               diff:'A1', forms:{'ich':'lege','wir':'legen','du':'legst','ihr':'legt','er/sie/es':'legt','sie/Sie':'legen'},                   ex:{de:'Ich lege das Buch auf den Tisch.',en:'I put the book on the table.'} },
+  { verb:'mögen',          en:'to like',                      diff:'A1', forms:{'ich':'mag','wir':'mögen','du':'magst','ihr':'mögt','er/sie/es':'mag','sie/Sie':'mögen'},                   ex:{de:'Ich mag Pizza.',en:'I like pizza.'} },
+  { verb:'möchten',        en:'would like',                   diff:'A1', forms:{'ich':'möchte','wir':'möchten','du':'möchtest','ihr':'möchtet','er/sie/es':'möchte','sie/Sie':'möchten'},     ex:{de:'Ich möchte einen Kaffee.',en:'I would like a coffee.'} },
+  { verb:'mitnehmen',      en:'to take along',                diff:'A1', forms:{'ich':'nehme mit','wir':'nehmen mit','du':'nimmst mit','ihr':'nehmt mit','er/sie/es':'nimmt mit','sie/Sie':'nehmen mit'}, ex:{de:'Ich nehme meine Tasche mit.',en:'I take my bag with me.'} },
+  { verb:'mieten',         en:'to rent',                      diff:'A1', forms:{'ich':'miete','wir':'mieten','du':'mietest','ihr':'mietet','er/sie/es':'mietet','sie/Sie':'mieten'},             ex:{de:'Ich miete eine kleine Wohnung.',en:'I rent a small apartment.'} },
+  { verb:'machen',         en:'to make, to do',               diff:'A1', forms:{'ich':'mache','wir':'machen','du':'machst','ihr':'macht','er/sie/es':'macht','sie/Sie':'machen'},             ex:{de:'Er macht keinen Fehler.',en:'He makes no mistake.'} },
+  { verb:'liegen',         en:'to lie, to be located',        diff:'A1', forms:{'ich':'liege','wir':'liegen','du':'liegst','ihr':'liegt','er/sie/es':'liegt','sie/Sie':'liegen'},             ex:{de:'Das Buch liegt auf dem Tisch.',en:'The book is lying on the table.'} },
+  { verb:'lernen',         en:'to learn',                     diff:'A1', forms:{'ich':'lerne','wir':'lernen','du':'lernst','ihr':'lernt','er/sie/es':'lernt','sie/Sie':'lernen'},               ex:{de:'Ich lerne Deutsch jeden Tag.',en:'I learn German every day.'} },
+  { verb:'laufen',         en:'to run, to walk',              diff:'A1', forms:{'ich':'laufe','wir':'laufen','du':'läufst','ihr':'lauft','er/sie/es':'läuft','sie/Sie':'laufen'},               ex:{de:'Ich laufe jeden Morgen im Park.',en:'I run every morning in the park.'} },
+  { verb:'sich kümmern',   en:'to take care of',              diff:'A1', forms:{'ich':'kümmere mich','wir':'kümmern uns','du':'külmmerst dich','ihr':'kümmert euch','er/sie/es':'kümmert sich','sie/Sie':'kümmern sich'}, ex:{de:'Ich kümmere mich um meinen Hund.',en:'I take care of my dog.'} },
+  { verb:'essen',          en:'to eat',                       diff:'A1', forms:{'ich':'esse','wir':'essen','du':'isst','ihr':'esst','er/sie/es':'isst','sie/Sie':'essen'},                   ex:{de:'Ich esse einen Apfel.',en:'I eat an apple.'} },
+  { verb:'entschuldigen',  en:'to excuse, to apologize',      diff:'A1', forms:{'ich':'entschuldige','wir':'entschuldigen','du':'entschuldigst','ihr':'entschuldigt','er/sie/es':'entschuldigt','sie/Sie':'entschuldigen'}, ex:{de:'Ich entschuldige mich bei dir.',en:'I apologize to you.'} },
+  { verb:'enden',          en:'to end',                       diff:'A1', forms:{'ich':'ende','wir':'enden','du':'endest','ihr':'endet','er/sie/es':'endet','sie/Sie':'enden'},                 ex:{de:'Der Film endet um neun Uhr.',en:'The movie ends at nine o\'clock.'} },
+  { verb:'ausfüllen',      en:'to fill out',                  diff:'A1', forms:{'ich':'fülle aus','wir':'füllen aus','du':'füllst aus','ihr':'füllt aus','er/sie/es':'füllt aus','sie/Sie':'füllen aus'}, ex:{de:'Ich muss das Formular ausfüllen.',en:'I have to fill out the form.'} },
+  { verb:'halten',         en:'to hold, to stop',             diff:'A1', forms:{'ich':'halte','wir':'halten','du':'hältst','ihr':'haltet','er/sie/es':'hält','sie/Sie':'halten'},               ex:{de:'Ich halte das kleine Buch in der Hand.',en:'I hold the small book in my hand.'} },
+  { verb:'ausziehen',      en:'to take off clothes',          diff:'A1', forms:{'ich':'ziehe aus','wir':'ziehen aus','du':'ziehst aus','ihr':'zieht aus','er/sie/es':'zieht aus','sie/Sie':'ziehen aus'}, ex:{de:'Ich ziehe meine Jacke aus.',en:'I take off my jacket.'} },
+  { verb:'heiraten',       en:'to marry',                     diff:'A1', forms:{'ich':'heirate','wir':'heiraten','du':'heiratest','ihr':'heiratet','er/sie/es':'heiratet','sie/Sie':'heiraten'},     ex:{de:'Ich heirate meine Freundin im Sommer.',en:'I marry my girlfriend in the summer.'} },
+  { verb:'heißen',         en:'to be called',                 diff:'A1', forms:{'ich':'heiße','wir':'heißen','du':'heißt','ihr':'heißt','er/sie/es':'heißt','sie/Sie':'heißen'},               ex:{de:'Er heißt Tom.',en:'His name is Tom.'} },
+  { verb:'helfen',         en:'to help',                      diff:'A1', forms:{'ich':'helfe','wir':'helfen','du':'hilfst','ihr':'helft','er/sie/es':'hilft','sie/Sie':'helfen'},             ex:{de:'Ich helfe dir gern.',en:'I like helping you.'} },
+  { verb:'waschen',        en:'to wash',                      diff:'A1', forms:{'ich':'wasche','wir':'waschen','du':'wäschst','ihr':'wascht','er/sie/es':'wäscht','sie/Sie':'waschen'},           ex:{de:'Ich wasche meine Hände.',en:'I wash my hands.'} },
+  { verb:'warten',         en:'to wait',                      diff:'A1', forms:{'ich':'warte','wir':'warten','du':'wartest','ihr':'wartet','er/sie/es':'wartet','sie/Sie':'warten'},             ex:{de:'Ich warte vor dem Kino.',en:'I wait in front of the cinema.'} },
+  { verb:'besichtigen',    en:'to visit, to view',            diff:'A1', forms:{'ich':'besichtige','wir':'besichtigen','du':'besichtigst','ihr':'besichtigt','er/sie/es':'besichtigt','sie/Sie':'besichtigen'}, ex:{de:'Wir besichtigen das Museum.',en:'We visit the museum.'} },
+  { verb:'vorstellen',     en:'to introduce',                 diff:'A1', forms:{'ich':'stelle vor','wir':'stellen vor','du':'stellst vor','ihr':'stellt vor','er/sie/es':'stellt vor','sie/Sie':'stellen vor'}, ex:{de:'Ich stelle mich der neuen Lehrerin vor.',en:'I introduce myself to the new teacher.'} },
+  { verb:'hören',          en:'to hear',                      diff:'A1', forms:{'ich':'höre','wir':'hören','du':'hörst','ihr':'hört','er/sie/es':'hört','sie/Sie':'hören'},               ex:{de:'Ich höre Musik.',en:'I listen to music.'} },
+  { verb:'verstehen',      en:'to understand',                diff:'A1', forms:{'ich':'verstehe','wir':'verstehen','du':'verstehst','ihr':'versteht','er/sie/es':'versteht','sie/Sie':'verstehen'},   ex:{de:'Ich verstehe dich gut.',en:'I understand you well.'} },
+  { verb:'vermieten',      en:'to rent out',                  diff:'A1', forms:{'ich':'vermiete','wir':'vermieten','du':'vermietest','ihr':'vermietet','er/sie/es':'vermietet','sie/Sie':'vermieten'},   ex:{de:'Ich vermiete ein kleines Zimmer.',en:'I rent out a small room.'} },
+  { verb:'verkaufen',      en:'to sell',                      diff:'A1', forms:{'ich':'verkaufe','wir':'verkaufen','du':'verkaufst','ihr':'verkauft','er/sie/es':'verkauft','sie/Sie':'verkaufen'},     ex:{de:'Ich verkaufe heute ein altes Buch.',en:'I am selling an old book today.'} },
+  { verb:'können',         en:'can, to be able to',           diff:'A1', forms:{'ich':'kann','wir':'können','du':'kannst','ihr':'könnt','er/sie/es':'kann','sie/Sie':'können'},               ex:{de:'Ich kann heute Deutsch lernen.',en:'I can study German today.'} },
+  { verb:'scheinen',       en:'to shine, to seem',            diff:'A1', forms:{'ich':'scheine','wir':'scheinen','du':'scheinst','ihr':'scheint','er/sie/es':'scheint','sie/Sie':'scheinen'},     ex:{de:'Die Sonne scheint heute.',en:'The sun is shining today.'} },
+  { verb:'schicken',       en:'to send',                      diff:'A1', forms:{'ich':'schicke','wir':'schicken','du':'schickst','ihr':'schickt','er/sie/es':'schickt','sie/Sie':'schicken'},         ex:{de:'Ich schicke eine E-Mail.',en:'I send an email.'} },
+  { verb:'schlafen',       en:'to sleep',                     diff:'A1', forms:{'ich':'schlafe','wir':'schlafen','du':'schläfst','ihr':'schlaft','er/sie/es':'schläft','sie/Sie':'schlafen'},     ex:{de:'Ich schlafe heute lange.',en:'I sleep long today.'} },
+  { verb:'verdienen',      en:'to earn',                      diff:'A1', forms:{'ich':'verdiene','wir':'verdienen','du':'verdienst','ihr':'verdient','er/sie/es':'verdient','sie/Sie':'verdienen'},   ex:{de:'Ich verdiene heute Geld.',en:'I earn money today.'} },
+  { verb:'unterschreiben', en:'to sign',                      diff:'A1', forms:{'ich':'unterschreibe','wir':'unterschreiben','du':'unterschreibst','ihr':'unterschreibt','er/sie/es':'unterschreibt','sie/Sie':'unterschreiben'}, ex:{de:'Ich unterschreibe das Formular.',en:'I sign the form.'} },
+  { verb:'umziehen',       en:'to move, change residence',    diff:'A1', forms:{'ich':'ziehe um','wir':'ziehen um','du':'ziehst um','ihr':'zieht um','er/sie/es':'zieht um','sie/Sie':'ziehen um'}, ex:{de:'Ich ziehe morgen um.',en:'I am moving tomorrow.'} },
+  { verb:'überweisen',      en:'to transfer money',            diff:'A1', forms:{'ich':'überweise','wir':'überweisen','du':'überweist','ihr':'überweist','er/sie/es':'überweist','sie/Sie':'überweisen'},     ex:{de:'Ich überweise das Geld heute.',en:'I transfer the money today.'} },
+  { verb:'benutzen',       en:'to use',                       diff:'A1', forms:{'ich':'benutze','wir':'benutzen','du':'benutzt','ihr':'benutzt','er/sie/es':'benutzt','sie/Sie':'benutzen'},         ex:{de:'Ich benutze jeden Tag mein Handy.',en:'I use my phone every day.'} },
+  { verb:'sich freuen',    en:'to look forward, to be happy', diff:'A1', forms:{'ich':'freue mich','wir':'freuen uns','du':'freust dich','ihr':'freut euch','er/sie/es':'freut sich','sie/Sie':'freuen sich'}, ex:{de:'Ich freue mich auf das Wochenende.',en:'I am looking forward to the weekend.'} },
+  { verb:'fragen',         en:'to ask',                       diff:'A1', forms:{'ich':'frage','wir':'fragen','du':'fragst','ihr':'fragt','er/sie/es':'fragt','sie/Sie':'fragen'},                 ex:{de:'Ich frage den Lehrer.',en:'I ask the teacher.'} },
+  { verb:'kaufen',         en:'to buy',                       diff:'A1', forms:{'ich':'kaufe','wir':'kaufen','du':'kaufst','ihr':'kauft','er/sie/es':'kauft','sie/Sie':'kaufen'},                 ex:{de:'Ich kaufe heute Brot.',en:'I am buying bread today.'} },
+  { verb:'fehlen',         en:'to be missing, to lack',       diff:'A1', forms:{'ich':'fehle','wir':'fehlen','du':'fehlst','ihr':'fehlt','er/sie/es':'fehlt','sie/Sie':'fehlen'},               ex:{de:'Mir fehlt heute mein Schlüssel.',en:'I am missing my key today.'} },
+  { verb:'kennen',         en:'to know a person',             diff:'A1', forms:{'ich':'kenne','wir':'kennen','du':'kennst','ihr':'kennt','er/sie/es':'kennt','sie/Sie':'kennen'},               ex:{de:'Ich kenne ihn.',en:'I know him.'} },
+  { verb:'kennenlernen',   en:'to get to know',               diff:'A1', forms:{'ich':'lerne kennen','wir':'lernen kennen','du':'lernst kennen','ihr':'lernt kennen','er/sie/es':'lernt kennen','sie/Sie':'lernen kennen'}, ex:{de:'Ich möchte neue Freunde kennenlernen.',en:'I want to get to know new friends.'} },
+  { verb:'kochen',         en:'to cook',                      diff:'A1', forms:{'ich':'koche','wir':'kochen','du':'kochst','ihr':'kocht','er/sie/es':'kocht','sie/Sie':'kochen'},               ex:{de:'Ich koche heute eine Suppe.',en:'I am cooking a soup today.'} },
+  { verb:'kommen',         en:'to come',                      diff:'A1', forms:{'ich':'komme','wir':'kommen','du':'kommst','ihr':'kommt','er/sie/es':'kommt','sie/Sie':'kommen'},             ex:{de:'Ich komme aus Deutschland.',en:'I come from Germany.'} },
+  { verb:'kosten',         en:'to cost',                      diff:'A1', forms:{'ich':'koste','wir':'kosten','du':'kostest','ihr':'kostet','er/sie/es':'kostet','sie/Sie':'kosten'},           ex:{de:'Die Äpfel kosten zwei Euro.',en:'The apples cost two euros.'} },
+  { verb:'kriegen',        en:'to get',                       diff:'A1', forms:{'ich':'kriege','wir':'kriegen','du':'kriegst','ihr':'kriegt','er/sie/es':'kriegt','sie/Sie':'kriegen'},         ex:{de:'Ich kriege heute einen Brief.',en:'I get a letter today.'} },
+  { verb:'feiern',         en:'to celebrate',                 diff:'A1', forms:{'ich':'feiere','wir':'feiern','du':'feierst','ihr':'feiert','er/sie/es':'feiert','sie/Sie':'feiern'},         ex:{de:'Wir feiern heute meinen Geburtstag.',en:'We are celebrating my birthday today.'} },
+  { verb:'mitbringen',     en:'to bring along',               diff:'A1', forms:{'ich':'bringe mit','wir':'bringen mit','du':'bringst mit','ihr':'bringt mit','er/sie/es':'bringt mit','sie/Sie':'bringen mit'}, ex:{de:'Ich bringe eine Flasche Wasser mit.',en:'I am bringing a bottle of water.'} },
+  { verb:'mitkommen',      en:'to come along',                diff:'A1', forms:{'ich':'komme mit','wir':'kommen mit','du':'kommst mit','ihr':'kommt mit','er/sie/es':'kommt mit','sie/Sie':'kommen mit'}, ex:{de:'Kommst du heute mit?',en:'Are you coming along today?'} },
+  { verb:'mitmachen',      en:'to participate',               diff:'A1', forms:{'ich':'mache mit','wir':'machen mit','du':'machst mit','ihr':'macht mit','er/sie/es':'macht mit','sie/Sie':'machen mit'}, ex:{de:'Ich mache bei dem Spiel mit.',en:'I join the game.'} },
+  { verb:'tun',            en:'to do',                        diff:'A1', forms:{'ich':'tue','wir':'tun','du':'tust','ihr':'tut','er/sie/es':'tut','sie/Sie':'tun'},                           ex:{de:'Ich tue heute nichts.',en:'I do nothing today.'} },
+  { verb:'trinken',        en:'to drink',                     diff:'A1', forms:{'ich':'trinke','wir':'trinken','du':'trinkst','ihr':'trinkt','er/sie/es':'trinkt','sie/Sie':'trinken'},         ex:{de:'Ich trinke Wasser.',en:'I drink water.'} },
+  { verb:'schreiben',      en:'to write',                     diff:'A1', forms:{'ich':'schreibe','wir':'schreiben','du':'schreibst','ihr':'schreibt','er/sie/es':'schreibt','sie/Sie':'schreiben'}, ex:{de:'Ich schreibe einen kurzen Text.',en:'I write a short text.'} },
+  { verb:'gewinnen',       en:'to win',                       diff:'A1', forms:{'ich':'gewinne','wir':'gewinnen','du':'gewinnst','ihr':'gewinnt','er/sie/es':'gewinnt','sie/Sie':'gewinnen'}, ex:{de:'Ich gewinne oft kleine Spiele.',en:'I often win small games.'} },
+  { verb:'übernachten',     en:'to stay overnight',            diff:'A1', forms:{'ich':'übernachte','wir':'übernachten','du':'übernachtest','ihr':'übernachtet','er/sie/es':'übernachtet','sie/Sie':'übernachten'}, ex:{de:'Wir übernachten heute im Hotel.',en:'We are staying overnight in the hotel today.'} },
+  { verb:'treffen',        en:'to meet',                      diff:'A1', forms:{'ich':'treffe','wir':'treffen','du':'triffst','ihr':'trefft','er/sie/es':'trifft','sie/Sie':'treffen'},       ex:{de:'Ich treffe meine Freunde am Samstag.',en:'I meet my friends on Saturday.'} },
+  { verb:'telefonieren',   en:'to make a phone call',         diff:'A1', forms:{'ich':'telefoniere','wir':'telefonieren','du':'telefonierst','ihr':'telefoniert','er/sie/es':'telefoniert','sie/Sie':'telefonieren'}, ex:{de:'Ich telefoniere jeden Abend mit meiner Mutter.',en:'I call my mother every evening.'} },
+  { verb:'antworten',      en:'to answer',                    diff:'A1', forms:{'ich':'antworte','wir':'antworten','du':'antwortest','ihr':'antwortet','er/sie/es':'antwortet','sie/Sie':'antworten'}, ex:{de:'Ich antworte sofort.',en:'I answer immediately.'} },
+];
+
+// ── Build conjugation quiz cards from VERB_CONJ ───────────────────────────
+function buildConjCards() {
+  const pronouns = ['ich','wir','du','ihr','er/sie/es','sie/Sie'];
+  // Pool of all forms for fallback when a verb has <3 distractors
+  const formPool = [...new Set(VERB_CONJ.flatMap(v => Object.values(v.forms)))];
+  const cards = [];
+  VERB_CONJ.forEach(v => {
+    pronouns.forEach(pronoun => {
+      const correct = v.forms[pronoun];
+      if (!correct) return;
+      const uniqueForms = [...new Set(Object.values(v.forms))];
+      let distractors = uniqueForms.filter(f => f !== correct);
+      if (distractors.length < 3) {
+        const extra = shuffle(formPool.filter(f => f !== correct && !distractors.includes(f)));
+        distractors = [...distractors, ...extra];
+      }
+      const opts = shuffle([correct, ...shuffle(distractors).slice(0, 3)]);
+      cards.push({
+        topic: 'conjugations',
+        sentence: `${pronoun} ___ (${v.verb})`,
+        answer: correct,
+        options: opts,
+        diff: v.diff,
+        translation: `${v.en} — "${v.ex.de}" / "${v.ex.en}"`
+      });
+    });
+  });
+  return cards;
+}
+
 // ── Grammar game state ─────────────────────────────────────────────────────
 let grammarDeck            = [];
 let grammarIdx             = 0;
@@ -1065,8 +1242,9 @@ let grammarSessionWrong    = 0;
 function getGrammarDeck() {
   const cat  = selectedGrammarCat;
   const diff = selectedGrammarDiff;
-  return GRAMMAR_CARDS
-    .filter(c => cat  === 'all' || c.topic === cat)
+  const base = cat === 'conjugations' ? buildConjCards() : GRAMMAR_CARDS;
+  return base
+    .filter(c => cat === 'all' || c.topic === cat)
     .filter(c => diff === 'all' || c.diff  === diff)
     .sort(() => Math.random() - 0.5);
 }
@@ -1574,6 +1752,53 @@ const THEORY = {
 `
   },
 
+  conjugations: {
+    title: '📖 142 A1 Verbs — Conjugation Guide',
+    html: `
+<h2>How to use this mode</h2>
+<p>Each card shows a <strong>pronoun + infinitive</strong>. Pick the correct conjugated form from 4 choices. All 4 options come from the <em>same verb</em>, so you train the full paradigm at once.</p>
+
+<h2>Regular verbs — endings</h2>
+<table>
+  <tr><th>Pronoun</th><th>Ending</th><th>lernen</th><th>arbeiten</th></tr>
+  <tr><td>ich</td><td>-e</td><td>lern<b>e</b></td><td>arbeit<b>e</b></td></tr>
+  <tr><td>du</td><td>-st</td><td>lern<b>st</b></td><td>arbeit<b>est</b></td></tr>
+  <tr><td>er/sie/es</td><td>-t</td><td>lern<b>t</b></td><td>arbeit<b>et</b></td></tr>
+  <tr><td>wir</td><td>-en</td><td>lern<b>en</b></td><td>arbeit<b>en</b></td></tr>
+  <tr><td>ihr</td><td>-t</td><td>lern<b>t</b></td><td>arbeit<b>et</b></td></tr>
+  <tr><td>sie/Sie</td><td>-en</td><td>lern<b>en</b></td><td>arbeit<b>en</b></td></tr>
+</table>
+<div class="note">💡 Verbs with stems ending in <strong>-t/-d</strong> (arbeiten, enden, warten) add an extra <strong>-e-</strong> before -st/-t for pronunciation: <em>du arbeit<b>est</b></em>, <em>er arbeit<b>et</b></em>.</div>
+
+<h2>Separable verbs</h2>
+<p>The prefix splits off and goes to the end of the clause.</p>
+<ul>
+  <li><strong>anziehen</strong> → Ich <em>ziehe</em> eine Jacke <em>an</em>.</li>
+  <li><strong>aufstehen</strong> → Er <em>steht</em> um 7 Uhr <em>auf</em>.</li>
+  <li><strong>einkaufen</strong> → Wir <em>kaufen</em> heute <em>ein</em>.</li>
+  <li><strong>fernsehen</strong> → Sie <em>sieht</em> abends <em>fern</em>.</li>
+</ul>
+
+<h2>Reflexive verbs</h2>
+<p>Require a reflexive pronoun (mich / dich / sich / uns / euch / sich).</p>
+<ul>
+  <li><strong>sich freuen</strong> → Ich <em>freue mich</em>, wir <em>freuen uns</em>.</li>
+  <li><strong>sich kümmern</strong> → Er <em>kümmert sich</em> um den Hund.</li>
+</ul>
+
+<h2>Key irregular verbs in this set</h2>
+<table>
+  <tr><th></th><th>sein</th><th>haben</th><th>werden</th><th>fahren</th><th>laufen</th></tr>
+  <tr><td>ich</td><td>bin</td><td>habe</td><td>werde</td><td>fahre</td><td>laufe</td></tr>
+  <tr><td>du</td><td>bist</td><td>hast</td><td>wirst</td><td>fährst</td><td>läufst</td></tr>
+  <tr><td>er/sie/es</td><td>ist</td><td>hat</td><td>wird</td><td>fährt</td><td>läuft</td></tr>
+  <tr><td>wir</td><td>sind</td><td>haben</td><td>werden</td><td>fahren</td><td>laufen</td></tr>
+  <tr><td>ihr</td><td>seid</td><td>habt</td><td>werdet</td><td>fahrt</td><td>lauft</td></tr>
+  <tr><td>sie/Sie</td><td>sind</td><td>haben</td><td>werden</td><td>fahren</td><td>laufen</td></tr>
+</table>
+`
+  },
+
   verbs: {
     title: '📖 Grammar — Verbs',
     html: `
@@ -1632,6 +1857,7 @@ function showTheory() {
     else if (gcat === 'prepositions') key = 'prepositions';
     else if (gcat === 'modals') key = 'modals';
     else if (gcat === 'verbs') key = 'verbs';
+    else if (gcat === 'conjugations') key = 'conjugations';
     else key = 'conjunctions'; // 'all' → show conjunctions first
   }
   const t = THEORY[key];
