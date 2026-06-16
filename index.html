@@ -639,6 +639,8 @@
       <button class="pill"        data-group="gcat" data-val="prepositions" onclick="selectPill(this)">Prepositions 📍</button>
       <button class="pill"        data-group="gcat" data-val="modals"       onclick="selectPill(this)">Modals ⚙️</button>
       <button class="pill"        data-group="gcat" data-val="verbs"        onclick="selectPill(this)">Verbs 🔄</button>
+      <button class="pill"        data-group="gcat" data-val="imperatives" onclick="selectPill(this)">Imperative 🗣️</button>
+      <button class="pill"        data-group="gcat" data-val="pronouns"    onclick="selectPill(this)">Pronouns 👤</button>
       <button class="pill"        data-group="gcat" data-val="conjugations" onclick="selectPill(this)">Conjugations 🔤</button>
     </div>
 
@@ -1050,6 +1052,38 @@ const GRAMMAR_CARDS = [
   { sentence:'Ihr ___ viele Freunde.',                     answer:'habt',    options:['habt','seid','hat','sind'],    topic:'verbs', diff:'A1', translation:'You (pl.) have many friends.' },
   { sentence:'Sie (plural) ___ aus Italien.',              answer:'sind',    options:['sind','haben','ist','hat'],    topic:'verbs', diff:'A1', translation:'They are from Italy.' },
   { sentence:'Ich ___ müde.',                              answer:'bin',     options:['bin','habe','ist','hat'],      topic:'verbs', diff:'A1', translation:'I am tired.' },
+
+  // Conjunctions — extras (denn / sondern focus)
+  { sentence:'Ich kann nicht kommen, ___ ich bin krank.',  answer:'denn',    options:['denn','aber','oder','sondern'], topic:'conjunctions', diff:'A1', translation:'I can\'t come, because I am sick.' },
+  { sentence:'Wir bleiben zu Hause, ___ wir haben kein Geld.', answer:'denn', options:['denn','und','aber','sondern'], topic:'conjunctions', diff:'A1', translation:'We stay home, because we have no money.' },
+  { sentence:'Sie studiert nicht in Hamburg, ___ in Berlin.', answer:'sondern', options:['sondern','aber','und','oder'], topic:'conjunctions', diff:'A1', translation:'She doesn\'t study in Hamburg, but in Berlin.' },
+  { sentence:'Das ist kein Tee, ___ Kaffee.',              answer:'sondern', options:['sondern','aber','denn','oder'], topic:'conjunctions', diff:'A1', translation:'That is not tea, but coffee.' },
+  { sentence:'Wir fahren nicht nach Italien, ___ nach Spanien.', answer:'sondern', options:['sondern','aber','und','denn'], topic:'conjunctions', diff:'A1', translation:'We aren\'t going to Italy, but to Spain.' },
+  { sentence:'Ich gehe ins Kino, ___ ich mag den Film.',   answer:'denn',    options:['denn','aber','sondern','oder'], topic:'conjunctions', diff:'A1', translation:'I go to the cinema, because I like the film.' },
+
+  // Imperativ — formal (Sie) & informal (du / ihr)
+  { sentence:'___ Sie bitte die Tür! (schließen)',         answer:'Schließen', options:['Schließen','Schließt','Schließe','Schloss'], topic:'imperatives', diff:'A1', translation:'Please close the door! (formal)' },
+  { sentence:'___ noch eine Zitrone! (kaufen, du)',         answer:'Kauf',    options:['Kauf','Kaufst','Kaufen','Kaufe'], topic:'imperatives', diff:'A1', translation:'Buy another lemon! (informal sg)' },
+  { sentence:'___ die Kreditkarte mit! (nehmen, du)',       answer:'Nimm',    options:['Nimm','Nehme','Nehmst','Nehmt'], topic:'imperatives', diff:'A1', translation:'Take the credit card with you! (du)' },
+  { sentence:'___ nicht so viel! (arbeiten, du)',           answer:'Arbeite', options:['Arbeite','Arbeit','Arbeitest','Arbeitet'], topic:'imperatives', diff:'A1', translation:'Don\'t work so much! (du)' },
+  { sentence:'___ nicht so schnell! (fahren, du)',          answer:'Fahr',    options:['Fahr','Fährst','Fährt','Fahre'], topic:'imperatives', diff:'A1', translation:'Don\'t drive so fast! (du — Umlaut falls weg)' },
+  { sentence:'___ die Kreditkarte mit! (nehmen, ihr)',      answer:'Nehmt',   options:['Nehmt','Nimm','Nehmen','Nehme'], topic:'imperatives', diff:'A1', translation:'Take the credit card with you! (ihr)' },
+  { sentence:'___ Sie bitte langsamer! (sprechen)',         answer:'Sprechen', options:['Sprechen','Sprich','Sprecht','Sprechst'], topic:'imperatives', diff:'A1', translation:'Please speak more slowly! (formal)' },
+  { sentence:'___ leise, bitte! (sein, du)',                answer:'Sei',     options:['Sei','Bist','Seid','Seien'], topic:'imperatives', diff:'A1', translation:'Be quiet, please! (du — irregular)' },
+  { sentence:'___ vorsichtig, Kinder! (sein, ihr)',         answer:'Seid',    options:['Seid','Sei','Seien','Sind'], topic:'imperatives', diff:'A1', translation:'Be careful, children! (ihr — irregular)' },
+  { sentence:'___ mir bitte! (helfen, du)',                 answer:'Hilf',    options:['Hilf','Helfe','Helft','Helfst'], topic:'imperatives', diff:'A1', translation:'Help me, please! (du — Vokalwechsel)' },
+
+  // Pronouns — possessive (mein/dein/sein…) and personal
+  { sentence:'Das ist ___ Buch. (ich)',                     answer:'mein',    options:['mein','meine','meinen','meiner'], topic:'pronouns', diff:'A1', translation:'That is my book.' },
+  { sentence:'Wo ist ___ Auto? (du)',                       answer:'dein',    options:['dein','deine','deinen','deiner'], topic:'pronouns', diff:'A1', translation:'Where is your car?' },
+  { sentence:'Das ist ___ Mutter. (er)',                    answer:'seine',   options:['seine','sein','seinen','seiner'], topic:'pronouns', diff:'A1', translation:'That is his mother.' },
+  { sentence:'___ Schwester wohnt in Köln. (sie, sg)',      answer:'Ihre',    options:['Ihre','Ihr','Ihren','Ihres'], topic:'pronouns', diff:'A1', translation:'Her sister lives in Cologne.' },
+  { sentence:'Wir lieben ___ Eltern. (wir)',                answer:'unsere',  options:['unsere','unser','unseren','unseres'], topic:'pronouns', diff:'A1', translation:'We love our parents.' },
+  { sentence:'Ist das ___ Hund? (ihr, plural)',             answer:'euer',    options:['euer','eure','euren','euers'], topic:'pronouns', diff:'A1', translation:'Is that your (pl.) dog?' },
+  { sentence:'Ich sehe ___ Bruder. (er, Akk.)',             answer:'seinen',  options:['seinen','sein','seine','seiner'], topic:'pronouns', diff:'A1', translation:'I see his brother.' },
+  { sentence:'Sie hilft ___ Freund. (sie, Dat.)',           answer:'ihrem',   options:['ihrem','ihr','ihren','ihre'], topic:'pronouns', diff:'A1', translation:'She helps her friend (dative).' },
+  { sentence:'Das Buch gehört ___. (ich, Dat.)',            answer:'mir',     options:['mir','mich','ich','mein'], topic:'pronouns', diff:'A1', translation:'The book belongs to me.' },
+  { sentence:'Ich sehe ___ morgen. (du, Akk.)',             answer:'dich',    options:['dich','dir','du','dein'], topic:'pronouns', diff:'A1', translation:'I will see you tomorrow.' },
 ];
 
 // ── Verb conjugation data ────────────────────────────────────────────────────
