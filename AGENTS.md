@@ -100,6 +100,7 @@ GitHub remote: `https://github.com/jugglingballsbot/german-flashcards.git` (bran
 - **Spaced repetition** — article Practice All starts with up to 10 per-user weak words, then 20 fresh practice words (`/api/weak-words/:userId`)
 - **Grammar result logging** — grammar answers are stored with `mode='grammar'`; `/api/weak-grammar/:userId` is available for future review UI
 - **Keyboard shortcuts** — `1/2/3` for articles, `1/2/3/4` for grammar
+- **Contextual theory** — Theory opens on selected topic (or first grammar topic for All), has Previous/Next, starts practice for current theory topic, and practice has a top-right `?` shortcut back to matching theory
 - **Haptic feedback** — `Telegram.WebApp.HapticFeedback.notificationOccurred`
 - **Audio feedback** — `playTone()` using Web Audio API
 - **Telegram integration** — uses `initDataUnsafe.user` to identify the user

@@ -129,3 +129,26 @@ test('weak-word API is per-user and returns up to 10 review words for spaced rep
   assert.match(weakWordsRoute, /WHERE userId = \? AND mode = 'articles'/, 'weak words are scoped to one user');
   assert.match(weakWordsRoute, /LIMIT 10/, 'weak words endpoint can supply the 10-card review block');
 });
+
+test('theory screen has contextual navigation and starts practice for the visible topic', () => {
+  assert.match(indexHtml, /id="theoryPrevBtn"/, 'theory screen has previous navigation');
+  assert.match(indexHtml, /id="theoryNextBtn"/, 'theory screen has next navigation');
+  assert.match(indexHtml, /onclick="startTheoryPractice\(\)"/, 'theory practice button starts selected topic');
+
+  const orderLiteral = extractArrayLiteral('THEORY_ORDER');
+  const order = Function(`return ${orderLiteral}`)();
+  assert.deepEqual(order, ['articles', 'conjunctions', 'prepositions', 'modals', 'verbs', 'imperatives', 'pronouns', 'conjugations']);
+
+  const startTheoryPractice = extractFunction('startTheoryPractice');
+  assert.match(startTheoryPractice, /selectedGameMode\s*=\s*'grammar'/, 'grammar theory starts grammar practice');
+  assert.match(startTheoryPractice, /setPillActive\('gcat',\s*currentTheoryKey\)/, 'grammar theory selects matching topic');
+  assert.match(startTheoryPractice, /startGame\(\)/, 'practice starts directly from theory');
+});
+
+test('practice screen exposes a question-mark theory shortcut', () => {
+  assert.match(indexHtml, /id="theoryHelpBtn"/, 'practice header has theory help button');
+  assert.match(indexHtml, /onclick="showPracticeTheory\(\)"/, 'help button opens practice theory');
+
+  const showPracticeTheory = extractFunction('showPracticeTheory');
+  assert.match(showPracticeTheory, /showTheory\(getCurrentPracticeTheoryKey\(\),\s*'gameScreen'\)/, 'practice theory preserves return-to-game context');
+});

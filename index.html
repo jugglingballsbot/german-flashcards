@@ -553,6 +553,35 @@
     transition: opacity 0.2s;
   }
   .btn-theory:active { opacity: 0.7; }
+  .theory-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin-top: 18px;
+  }
+  .theory-nav button, .btn-help {
+    background: rgba(255,255,255,0.07);
+    color: var(--tg-theme-text-color, #eee);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .theory-nav button {
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .btn-help {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .theory-nav button:active, .btn-help:active { opacity: 0.7; }
 
 </style>
 </head>
@@ -662,11 +691,15 @@
 <!-- ── THEORY SCREEN ── -->
 <div class="screen" id="theoryScreen" style="display:none">
   <div class="header-row">
-    <button class="btn-home" onclick="showScreen('startScreen')">← Back</button>
+    <button class="btn-home" onclick="closeTheory()" id="theoryBackBtn">← Back</button>
     <div style="font-size:0.82rem;opacity:0.4" id="theoryTitle"></div>
   </div>
   <div class="theory-body" id="theoryContent"></div>
-  <button class="btn-start" style="margin-top:20px" onclick="showScreen('startScreen'); setTimeout(startGame, 80)">▶ Start Practice</button>
+  <div class="theory-nav">
+    <button id="theoryPrevBtn" onclick="moveTheory(-1)">← Previous</button>
+    <button id="theoryNextBtn" onclick="moveTheory(1)">Next →</button>
+  </div>
+  <button class="btn-start" style="margin-top:14px" onclick="startTheoryPractice()">▶ Practice this topic</button>
 </div>
 
 <!-- ── GAME SCREEN ── -->
@@ -674,6 +707,7 @@
   <div class="header-row">
     <button class="btn-home" onclick="goMenu()">← Home</button>
     <div class="header-badges">
+      <button class="btn-help" id="theoryHelpBtn" onclick="showPracticeTheory()" title="Theory">?</button>
       <div class="goal-badge"   id="goalBadgeGame"></div>
       <div class="streak-badge" id="streakBadgeGame" style="display:none"></div>
     </div>
@@ -1809,6 +1843,59 @@ const THEORY = {
 `
   },
 
+  imperatives: {
+    title: '📖 Grammar — Imperative',
+    html: `
+<h2>What is the imperative?</h2>
+<p>The imperative is the command/request form: <strong>Come here!</strong>, <strong>Please listen!</strong>, <strong>Open the door!</strong></p>
+
+<h2>Main forms</h2>
+<table>
+  <tr><th>Who?</th><th>Pattern</th><th>Example</th></tr>
+  <tr><td>du</td><td>verb stem</td><td><strong>Komm</strong> bitte! — Come, please!</td></tr>
+  <tr><td>ihr</td><td>normal ihr-form</td><td><strong>Kommt</strong> bitte! — Come, please!</td></tr>
+  <tr><td>Sie</td><td>verb + Sie</td><td><strong>Kommen Sie</strong> bitte! — Please come!</td></tr>
+</table>
+
+<h2>Useful A1 commands</h2>
+<ul>
+  <li><strong>Hör zu!</strong> — Listen!</li>
+  <li><strong>Warte!</strong> — Wait!</li>
+  <li><strong>Sprich langsam!</strong> — Speak slowly!</li>
+  <li><strong>Schreib das!</strong> — Write that!</li>
+</ul>
+
+<div class="note">💡 Polite requests often use <strong>bitte</strong>: <em>Warten Sie bitte.</em> / <em>Komm bitte.</em></div>
+`
+  },
+
+  pronouns: {
+    title: '📖 Grammar — Pronouns',
+    html: `
+<h2>Subject pronouns</h2>
+<p>Subject pronouns do the action. They control the verb ending.</p>
+<table>
+  <tr><th>German</th><th>English</th><th>Example</th></tr>
+  <tr><td>ich</td><td>I</td><td>ich bin</td></tr>
+  <tr><td>du</td><td>you informal</td><td>du bist</td></tr>
+  <tr><td>er / sie / es</td><td>he / she / it</td><td>er ist</td></tr>
+  <tr><td>wir</td><td>we</td><td>wir sind</td></tr>
+  <tr><td>ihr</td><td>you plural informal</td><td>ihr seid</td></tr>
+  <tr><td>sie / Sie</td><td>they / formal you</td><td>sie sind / Sie sind</td></tr>
+</table>
+
+<h2>Object pronouns you see early</h2>
+<ul>
+  <li><strong>mich</strong> — me <span class="ex">Sie sieht mich.</span></li>
+  <li><strong>dich</strong> — you <span class="ex">Ich frage dich.</span></li>
+  <li><strong>ihn / sie / es</strong> — him / her / it</li>
+  <li><strong>mir / dir</strong> — to me / to you <span class="ex">Das hilft mir.</span></li>
+</ul>
+
+<div class="note">💡 Capital <strong>Sie</strong> means formal “you”. Lowercase <strong>sie</strong> can mean “she” or “they”; the verb usually tells you which.</div>
+`
+  },
+
   conjugations: {
     title: '📖 142 A1 Verbs — Conjugation Guide',
     html: `
@@ -1905,22 +1992,75 @@ const THEORY = {
   }
 };
 
-function showTheory() {
+const THEORY_ORDER = ['articles', 'conjunctions', 'prepositions', 'modals', 'verbs', 'imperatives', 'pronouns', 'conjugations'];
+let currentTheoryKey = 'articles';
+let theoryBackScreen = 'startScreen';
+
+function setPillActive(group, value) {
+  document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => {
+    p.classList.toggle('active', p.dataset.val === value);
+  });
+}
+
+function getSelectedTheoryKey() {
   const gamemode = document.querySelector('.pill[data-group="gamemode"].active')?.dataset.val || 'articles';
-  let key = 'articles';
-  if (gamemode === 'grammar') {
-    const gcat = document.querySelector('.pill[data-group="gcat"].active')?.dataset.val || 'all';
-    if (gcat === 'conjunctions') key = 'conjunctions';
-    else if (gcat === 'prepositions') key = 'prepositions';
-    else if (gcat === 'modals') key = 'modals';
-    else if (gcat === 'verbs') key = 'verbs';
-    else if (gcat === 'conjugations') key = 'conjugations';
-    else key = 'conjunctions'; // 'all' → show conjunctions first
-  }
-  const t = THEORY[key];
-  document.getElementById('theoryTitle').textContent = t.title;
+  if (gamemode !== 'grammar') return 'articles';
+  const gcat = document.querySelector('.pill[data-group="gcat"].active')?.dataset.val || 'all';
+  return THEORY[gcat] ? gcat : 'conjunctions';
+}
+
+function getCurrentPracticeTheoryKey() {
+  if (selectedGameMode !== 'grammar') return 'articles';
+  return THEORY[selectedGrammarCat] ? selectedGrammarCat : 'conjunctions';
+}
+
+function renderTheory() {
+  const t = THEORY[currentTheoryKey] || THEORY.articles;
+  const pos = THEORY_ORDER.indexOf(currentTheoryKey);
+  document.getElementById('theoryTitle').textContent = `${pos + 1}/${THEORY_ORDER.length} · ${t.title}`;
   document.getElementById('theoryContent').innerHTML = t.html;
+  document.getElementById('theoryPrevBtn').textContent = '← ' + THEORY[THEORY_ORDER[(pos - 1 + THEORY_ORDER.length) % THEORY_ORDER.length]].title.replace('📖 ', '');
+  document.getElementById('theoryNextBtn').textContent = THEORY[THEORY_ORDER[(pos + 1) % THEORY_ORDER.length]].title.replace('📖 ', '') + ' →';
+  document.getElementById('theoryBackBtn').textContent = theoryBackScreen === 'gameScreen' ? '← Practice' : '← Back';
+}
+
+function showTheory(key = getSelectedTheoryKey(), backScreen = 'startScreen') {
+  currentTheoryKey = THEORY[key] ? key : 'articles';
+  theoryBackScreen = backScreen;
+  renderTheory();
   showScreen('theoryScreen');
+}
+
+function moveTheory(delta) {
+  const pos = THEORY_ORDER.indexOf(currentTheoryKey);
+  currentTheoryKey = THEORY_ORDER[(pos + delta + THEORY_ORDER.length) % THEORY_ORDER.length];
+  renderTheory();
+}
+
+function closeTheory() {
+  showScreen(theoryBackScreen);
+}
+
+function startTheoryPractice() {
+  if (currentTheoryKey === 'articles') {
+    selectedGameMode = 'articles';
+    setPillActive('gamemode', 'articles');
+    document.getElementById('grammarCatSection').style.display = 'none';
+    document.getElementById('articleFilters').style.display = '';
+  } else {
+    selectedGameMode = 'grammar';
+    selectedGrammarCat = currentTheoryKey;
+    setPillActive('gamemode', 'grammar');
+    setPillActive('gcat', currentTheoryKey);
+    document.getElementById('grammarCatSection').style.display = '';
+    document.getElementById('articleFilters').style.display = 'none';
+  }
+  showScreen('startScreen');
+  setTimeout(() => startGame(), 80);
+}
+
+function showPracticeTheory() {
+  showTheory(getCurrentPracticeTheoryKey(), 'gameScreen');
 }
 
 function showScreen(id) {

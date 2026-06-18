@@ -25,7 +25,13 @@ A Telegram Mini App for learning German articles (der / die / das) and grammar (
 - Live session counter (✅ / ❌) in the header
 - Haptic + audio feedback on each answer
 - Correct answers count toward your **daily goal**
-- Topics: Conjunctions · Prepositions · Modals · Verbs (sein/haben)
+- Topics: Conjunctions · Prepositions · Modals · Verbs · Imperative · Pronouns · Conjugations
+
+### Theory 📖
+- Theory opens on the selected topic, or the first grammar topic when **All** is selected
+- Theory has **Previous / Next** navigation across the learning sections
+- **Practice this topic** starts practice directly for the theory section you are reading
+- During practice, the top-right **?** button opens the matching theory and returns back to practice
 
 ---
 
@@ -176,7 +182,7 @@ Add entries to the `GRAMMAR_CARDS` array in `index.html`:
   diff:'A1',
   translation:'I am going home.' }
 ```
-Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
+Topics: `conjunctions` · `prepositions` · `modals` · `verbs` · `imperatives` · `pronouns` · `conjugations`
 
 ---
 
@@ -189,6 +195,7 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 - [x] Grammar mode (fill-in-the-blank, 66 cards, 6 topics)
 - [x] Keyboard support (1–4 for grammar, 1–3 for articles)
 - [x] Haptic + audio feedback in both modes
+- [x] Contextual theory mode with Previous/Next, topic-specific Practice, and in-practice `?` help
 - [ ] More grammar cards (negation, accusative, adjective endings)
 - [ ] A2/B1 grammar cards
 - [ ] Translation mode (German → English multiple choice)
@@ -207,6 +214,7 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 - Article **Practice All** now builds a per-user spaced-repetition deck: up to 10 weak words first, then 20 fresh non-duplicate practice words
 - `/api/weak-words/:userId` now returns up to 10 words so the frontend can fill the review block
 - Added tests covering the per-user weak-word endpoint and 10-review + 20-new deck construction
+- Made Theory contextual and connected: opens on the selected topic, supports Previous/Next, starts practice for the current theory topic, and adds a top-right `?` shortcut during practice
 
 ### 2026-06-15
 - Split API and Telegram bot entrypoints so `server.js` no longer starts Telegram polling as a side effect
