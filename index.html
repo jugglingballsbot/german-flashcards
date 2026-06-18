@@ -1397,6 +1397,8 @@ let lastCards = null; // for "Play again"
 
 let selectedMode = 'all', selectedCat = 'all', selectedDiff = 'all';
 let weakWordsFromAPI = [];
+const REVIEW_WORD_LIMIT = 10;
+const NEW_WORD_LIMIT = 20;
 
 // ── Streak ─────────────────────────────────────────────────────────────────
 function getStreak() { return parseInt(localStorage.getItem('gfc_streak') || '0'); }
@@ -1577,6 +1579,28 @@ async function setupStart() {
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
 // ── Start fresh ────────────────────────────────────────────────────────────
+function buildArticlePracticeDeck(cards, weakWords, mode) {
+  const byWord = new Map(cards.map(c => [c.word.toLowerCase(), c]));
+  const reviewCards = [];
+  const reviewWords = new Set();
+
+  for (const word of weakWords || []) {
+    const card = byWord.get(String(word).toLowerCase());
+    if (!card || reviewWords.has(card.word.toLowerCase())) continue;
+    reviewCards.push(card);
+    reviewWords.add(card.word.toLowerCase());
+    if (reviewCards.length >= REVIEW_WORD_LIMIT) break;
+  }
+
+  if (mode === 'weak') return reviewCards;
+
+  const freshCards = cards
+    .filter(c => !reviewWords.has(c.word.toLowerCase()))
+    .sort(() => Math.random() - 0.5)
+    .slice(0, NEW_WORD_LIMIT);
+
+  return [...reviewCards, ...freshCards];
+}
 
 // ── Grammar game start ─────────────────────────────────────────────────────
 function startGrammarGame() {
@@ -1616,12 +1640,11 @@ async function startGame() {
   if (selectedCat  !== 'all') cards = cards.filter(c => c.cat  === selectedCat);
   if (selectedDiff !== 'all') cards = cards.filter(c => c.diff === selectedDiff);
 
-  if (selectedMode === 'weak') {
-    if (weakWordsFromAPI.length === 0) { showMsg('No weak words yet — practice more first!'); return; }
-    const ws = new Set(weakWordsFromAPI.map(w => w.toLowerCase()));
-    const filtered = cards.filter(c => ws.has(c.word.toLowerCase()));
-    if (filtered.length === 0) { showMsg('No weak words in this category/difficulty.'); return; }
-    cards = filtered;
+  cards = buildArticlePracticeDeck(cards, weakWordsFromAPI, selectedMode);
+
+  if (selectedMode === 'weak' && cards.length === 0) {
+    showMsg('No weak words yet — practice more first!');
+    return;
   }
 
   if (cards.length === 0) { showMsg('No cards match — try a different combination.'); return; }

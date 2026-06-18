@@ -13,7 +13,8 @@ A Telegram Mini App for learning German articles (der / die / das) and grammar (
 - A card shows a German noun + English translation
 - Tap **der**, **die**, or **das**
 - Card flips to reveal the correct article
-- Wrong answers are tracked for spaced repetition
+- Wrong answers are tracked per user for spaced repetition
+- **Practice All** sessions start with up to **10 weak words**, then add **20 fresh practice words**
 
 ### Grammar ✏️ (fill-in-the-blank)
 - A sentence is shown with a `___` blank
@@ -126,7 +127,7 @@ Record end-of-session summary.
 Returns all-time progress summary.
 
 ### `GET /api/weak-words/:userId`
-Returns words the user struggles with (wrong > correct).
+Returns up to 10 article words this specific user struggles with (`wrong >= correct`), ordered for the review block at the start of article sessions.
 
 ### `GET /api/weak-grammar/:userId`
 Returns grammar prompts the user struggles with (wrong >= correct).
@@ -184,7 +185,7 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 - [x] Article guessing game (der/die/das)
 - [x] 9 word categories (211 cards, A1–B1)
 - [x] Daily goal + streak tracking
-- [x] Spaced repetition (weak words surfaced more often)
+- [x] Spaced repetition (per-user weak words surfaced first: up to 10 review + 20 fresh practice words)
 - [x] Grammar mode (fill-in-the-blank, 66 cards, 6 topics)
 - [x] Keyboard support (1–4 for grammar, 1–3 for articles)
 - [x] Haptic + audio feedback in both modes
@@ -201,6 +202,11 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs`
 ---
 
 ## Changelog
+
+### 2026-06-18
+- Article **Practice All** now builds a per-user spaced-repetition deck: up to 10 weak words first, then 20 fresh non-duplicate practice words
+- `/api/weak-words/:userId` now returns up to 10 words so the frontend can fill the review block
+- Added tests covering the per-user weak-word endpoint and 10-review + 20-new deck construction
 
 ### 2026-06-15
 - Split API and Telegram bot entrypoints so `server.js` no longer starts Telegram polling as a side effect

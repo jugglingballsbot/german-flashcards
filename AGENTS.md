@@ -82,6 +82,8 @@ GitHub remote: `https://github.com/jugglingballsbot/german-flashcards.git` (bran
 - 211 cards across 9 categories: `animals`, `food`, `home`, `office`, `city`, `leisure`, `people`, `colors`, `numbers`
 - Difficulty: A1 / A2 / B1
 - Filters: Mode (All / Weak Words), Category, Difficulty
+- Practice All builds a 30-card set when possible: up to 10 per-user weak words first, then 20 fresh non-duplicate practice words
+- Weak Words is per-user via Telegram `initDataUnsafe.user` / `/api/weak-words/:userId`
 - Cards stored in `CARDS = [...]` array in `index.html` (~lines 640+)
 
 **Grammar ✏️** — fill-in-the-blank sentences.
@@ -95,7 +97,7 @@ GitHub remote: `https://github.com/jugglingballsbot/german-flashcards.git` (bran
 
 - **Daily goal** (default 20) — both modes count toward it; saved per-user via API
 - **Streak** (consecutive days hitting goal) — stored in localStorage
-- **Spaced repetition** — wrong articles surface more often (`/api/weak-words/:userId`)
+- **Spaced repetition** — article Practice All starts with up to 10 per-user weak words, then 20 fresh practice words (`/api/weak-words/:userId`)
 - **Grammar result logging** — grammar answers are stored with `mode='grammar'`; `/api/weak-grammar/:userId` is available for future review UI
 - **Keyboard shortcuts** — `1/2/3` for articles, `1/2/3/4` for grammar
 - **Haptic feedback** — `Telegram.WebApp.HapticFeedback.notificationOccurred`
@@ -144,7 +146,7 @@ let selectedGrammarCat
 | POST   | `/api/card-result` | Log one card answer (article or grammar mode) |
 | POST   | `/api/session` | Log end-of-round summary |
 | GET    | `/api/stats/:userId` | All-time stats |
-| GET    | `/api/weak-words/:userId` | Words user struggles with |
+| GET    | `/api/weak-words/:userId` | Up to 10 per-user article review words |
 | GET    | `/api/weak-grammar/:userId` | Grammar prompts user struggles with |
 | GET    | `/api/daily/:userId` | Today's progress + goal |
 | POST   | `/api/daily/:userId` | Upsert today's progress + goal |

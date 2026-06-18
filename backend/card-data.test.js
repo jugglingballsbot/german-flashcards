@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const serverJs = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
 
 function extractArrayLiteral(name) {
   const start = indexHtml.indexOf(`const ${name} = [`);
@@ -97,4 +98,34 @@ test('grammar answers are logged like article answers', () => {
   assert.match(answerGrammar, /apiPost\('\/card-result'/, 'answerGrammar posts per-card results');
   assert.match(answerGrammar, /mode:\s*'grammar'/, 'grammar result payload is marked as grammar mode');
   assert.match(startGrammarGame, /currentSessionId\s*=/, 'grammar sessions get a session id');
+});
+
+test('all article practice starts with 10 per-user weak words then 20 fresh practice words', () => {
+  const buildArticlePracticeDeck = extractFunction('buildArticlePracticeDeck');
+  const fn = Function(`const REVIEW_WORD_LIMIT = 10; const NEW_WORD_LIMIT = 20; ${buildArticlePracticeDeck}; return buildArticlePracticeDeck;`)();
+  const cards = Array.from({ length: 35 }, (_, i) => ({
+    word: `Word${i + 1}`,
+    article: ['der', 'die', 'das'][i % 3],
+    en: `word ${i + 1}`,
+    cat: 'test',
+    diff: 'A1',
+  }));
+  const weak = ['Word12', 'Word4', 'Word1', 'Word9', 'Word18', 'Word21', 'Word22', 'Word23', 'Word24', 'Word25', 'Word26'];
+
+  const deck = fn(cards, weak, 'all');
+
+  assert.equal(deck.length, 30);
+  assert.deepEqual(deck.slice(0, 10).map(c => c.word), weak.slice(0, 10));
+  assert.equal(new Set(deck.map(c => c.word)).size, 30, 'deck has unique words');
+  assert.equal(deck.slice(10).length, 20, 'all mode appends exactly 20 new practice words');
+  assert.equal(deck.slice(10).some(c => weak.slice(0, 10).includes(c.word)), false, 'new words do not duplicate review words');
+});
+
+test('weak-word API is per-user and returns up to 10 review words for spaced repetition', () => {
+  const weakWordsRoute = serverJs.slice(
+    serverJs.indexOf("app.get('/api/weak-words/:userId'"),
+    serverJs.indexOf("app.get('/api/weak-grammar/:userId'")
+  );
+  assert.match(weakWordsRoute, /WHERE userId = \? AND mode = 'articles'/, 'weak words are scoped to one user');
+  assert.match(weakWordsRoute, /LIMIT 10/, 'weak words endpoint can supply the 10-card review block');
 });

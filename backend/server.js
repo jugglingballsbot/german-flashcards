@@ -155,7 +155,7 @@ app.get('/api/weak-words/:userId', (req, res) => {
     GROUP BY word
     HAVING wrongs >= rights
     ORDER BY (wrongs - rights) DESC, lastSeen ASC
-    LIMIT 8
+    LIMIT 10
   `).all(userId);
   res.json(rows.map(r => r.word));
 });
