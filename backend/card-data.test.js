@@ -130,6 +130,17 @@ test('weak-word API is per-user and returns up to 10 review words for spaced rep
   assert.match(weakWordsRoute, /LIMIT 10/, 'weak words endpoint can supply the 10-card review block');
 });
 
+test('weak words UI can refresh after answers without duplicating fetch logic', () => {
+  const refreshWeakWordsUI = extractFunction('refreshWeakWordsUI');
+  const setupStart = extractFunction('setupStart');
+  const answer = extractFunction('answer');
+
+  assert.match(refreshWeakWordsUI, /apiGet\(`\/weak-words\/\$\{USER_ID\}`\)/, 'weak-word refresh fetches the per-user weak words endpoint');
+  assert.match(refreshWeakWordsUI, /weakPill/, 'weak-word refresh updates the Weak Words pill');
+  assert.match(setupStart, /refreshWeakWordsUI\(\)/, 'start screen refreshes weak words on first load');
+  assert.match(answer, /refreshWeakWordsUI\(\)/, 'article answers refresh weak-word count after logging');
+});
+
 test('theory screen has contextual navigation and starts practice for the visible topic', () => {
   assert.match(indexHtml, /id="theoryPrevBtn"/, 'theory screen has previous navigation');
   assert.match(indexHtml, /id="theoryNextBtn"/, 'theory screen has next navigation');

@@ -154,9 +154,11 @@ Upserts today's progress. Optionally updates goal.
 ```bash
 cd /root/.openclaw/workspace/projects/german-flashcards/backend
 npm install
-# Start API (direct)
-node server.js
-# Start bot separately via pm2
+
+# API is systemd-owned; do not also run node server.js or a PM2 API process
+systemctl restart german-flashcards-api.service
+
+# Bot runs separately via PM2
 pm2 start bot.js --name flashcards-bot --update-env
 pm2 save
 ```
@@ -209,6 +211,11 @@ Topics: `conjunctions` · `prepositions` · `modals` · `verbs` · `imperatives`
 ---
 
 ## Changelog
+
+### 2026-06-19
+- Made `systemd` the single owner of the API process by removing the duplicate PM2 `flashcards-api` process and restarting `german-flashcards-api.service`
+- Added `refreshWeakWordsUI()` so the Weak Words count refreshes on first load and after article answers without duplicating fetch logic
+- Added a regression test for weak-word UI refresh behavior
 
 ### 2026-06-18
 - Article **Practice All** now builds a per-user spaced-repetition deck: up to 10 weak words first, then 20 fresh non-duplicate practice words

@@ -1584,12 +1584,24 @@ function selectPill(btn) {
 }
 
 // ── Setup start screen ─────────────────────────────────────────────────────
+async function refreshWeakWordsUI() {
+  const ww = await apiGet(`/weak-words/${USER_ID}`);
+  const weakPill = document.getElementById('weakPill');
+  if (!Array.isArray(ww) || !weakPill) return [];
+
+  weakWordsFromAPI = ww;
+  weakPill.innerHTML = ww.length > 0
+    ? `Weak Words 💪 <span class="ct">${ww.length}</span>`
+    : 'Weak Words 💪';
+  return ww;
+}
+
 async function setupStart() {
   renderStreak('streakBadgeStart');
 
-  const [daily, ww] = await Promise.all([
+  const [daily] = await Promise.all([
     apiGet(`/daily/${USER_ID}`),
-    apiGet(`/weak-words/${USER_ID}`)
+    refreshWeakWordsUI()
   ]);
 
   if (daily) {
@@ -1601,12 +1613,6 @@ async function setupStart() {
   }
   updateGoalUI();
   updateContinueBtn();
-
-  if (Array.isArray(ww) && ww.length > 0) {
-    weakWordsFromAPI = ww;
-    document.getElementById('weakPill').innerHTML =
-      `Weak Words 💪 <span class="ct">${ww.length}</span>`;
-  }
 }
 
 // ── Shuffle ────────────────────────────────────────────────────────────────
@@ -2206,6 +2212,9 @@ function answer(chosen) {
     userId: USER_ID, word: c.word, article: c.article,
     chosen, correct: ok, sessionId: currentSessionId
   });
+
+  // Update weak words UI
+  refreshWeakWordsUI();
 
   // Periodic autosave
   saveCounter++;
